@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>สมัครสมาชิก • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{--bg:#f7f7f8;--card:#fff;--line:#e5e7eb;--text:#111827;--muted:#6b7280;--accent:#2563eb;--danger:#ef4444;--ok:#16a34a}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+    header{padding:14px 16px;border-bottom:1px solid var(--line);background:#fff}
+    header b{letter-spacing:.3px}
+    main{max-width:840px;margin:18px auto;padding:0 16px 40px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    label{display:block;margin:6px 0 6px;color:#374151;font-weight:600}
+    input,select,button,textarea{font:inherit}
+    input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    textarea{min-height:90px}
+    .row{display:flex;gap:10px;align-items:center}
+    .muted{color:var(--muted);font-size:12px}
+    .error{color:#fff;background:var(--danger);padding:8px 10px;border-radius:10px;margin-top:10px;display:none}
+    .btn{appearance:none;border:0;border-radius:10px;padding:12px 14px;font-weight:700;cursor:pointer}
+    .btn.primary{background:var(--accent);color:#fff}
+    .btn.ghost{background:#fff;border:1px solid var(--accent);color:var(--accent)}
+    .btn.ok{background:var(--ok);color:#fff}
+    .actions{display:flex;gap:10px;justify-content:space-between;margin-top:14px;flex-direction:row-reverse}
+
+    /* Modal */
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:50}
+    .backdrop.show{display:flex}
+    .modal{background:#fff;border:1px solid var(--line);border-radius:16px;max-width:420px;width:92%;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+    .modal h3{margin:0 0 8px}
+    .modal p{margin:0 0 14px;color:#374151}
+    .modal .row{justify-content:flex-end}
+  </style>
+</head>
+<body>
+  <header><b>LOOK UP • สมัครสมาชิก</b></header>
+
+  <main>
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>คำนำหน้า</label>
+          <select id="prefix">
+            <option value="คุณ">คุณ</option>
+            <option value="นาย">นาย</option>
+            <option value="นาง">นาง</option>
+            <option value="นางสาว">นางสาว</option>
+            <option value="_other">อื่น ๆ (ระบุด้านล่าง)</option>
+          </select>
+          <input id="prefix_other" placeholder="ระบุคำนำหน้าเอง" class="muted" style="margin-top:8px;display:none">
+        </div>
+
+        <div>
+          <label>เบอร์โทรศัพท์</label>
+          <input id="phone" inputmode="numeric" maxlength="10" placeholder="เช่น 0812345678">
+          <div class="muted">ตัวเลข 10 หลัก</div>
+        </div>
+
+        <div>
+          <label>ชื่อ</label>
+          <input id="first_name" placeholder="ชื่อจริง">
+        </div>
+
+        <div>
+          <label>นามสกุล</label>
+          <input id="last_name" placeholder="นามสกุล">
+        </div>
+
+        <div>
+          <label>อีเมล</label>
+          <input id="email" type="email" placeholder="name@example.com" autocomplete="username">
+        </div>
+
+        <div>
+          <label>รหัสผ่าน</label>
+          <div class="row">
+            <input id="password" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="new-password" style="flex:1">
+            <button type="button" class="btn ghost" onclick="togglePw('password', this)">แสดง</button>
+          </div>
+        </div>
+
+        <div>
+          <label>ยืนยันรหัสผ่าน</label>
+          <div class="row">
+            <input id="password2" type="password" placeholder="พิมพ์ซ้ำอีกครั้ง" autocomplete="new-password" style="flex:1">
+            <button type="button" class="btn ghost" onclick="togglePw('password2', this)">แสดง</button>
+          </div>
+        </div>
+
+        <div>
+          <label>บ้านเลขที่ / ที่อยู่</label>
+          <input id="addr1" placeholder="บ้านเลขที่ หมู่/ซอย ถนน">
+        </div>
+
+        <div>
+          <label>ตำบล</label>
+          <input id="subdistrict" placeholder="ตำบล/แขวง">
+        </div>
+
+        <div>
+          <label>อำเภอ</label>
+          <input id="district" placeholder="อำเภอ/เขต">
+        </div>
+
+        <div>
+          <label>จังหวัด</label>
+          <input id="province" placeholder="จังหวัด">
+        </div>
+
+        <div>
+          <label>รหัสไปรษณีย์</label>
+          <input id="zipcode" inputmode="numeric" maxlength="5" placeholder="เช่น 10210">
+        </div>
+      </div>
+
+      <div id="err" class="error"></div>
+
+      <div class="actions">
+        <a class="btn ghost" href="/login.html">มีบัญชีแล้ว? ไปเข้าสู่ระบบ</a>
+        <button id="btnSubmit" class="btn primary" onclick="submitForm()">สมัครสมาชิก</button>
+      </div>
+    </div>
+
+    <section style="margin-top:12px" class="muted">
+      * ข้อมูลที่อยู่จะถูกจัดเก็บในรูปแบบข้อความเดียวตามโครงสร้างฐานข้อมูลปัจจุบัน (สามารถแก้ไขได้ในหน้าโปรไฟล์ภายหลัง)
+    </section>
+  </main>
+
+  <!-- Success Modal -->
+  <div id="successBox" class="backdrop" role="dialog" aria-modal="true" aria-labelledby="successTitle">
+    <div class="modal">
+      <h3 id="successTitle">สมัครสมาชิกสำเร็จ 🎉</h3>
+      <p>บัญชีของคุณถูกสร้างเรียบร้อยแล้ว คุณสามารถเข้าสู่ระบบเพื่อเริ่มใช้งานได้ทันที</p>
+      <div class="row">
+        <button class="btn ghost" onclick="closeSuccess()">ปิด</button>
+        <a class="btn ok" href="/login.html">ไปหน้าเข้าสู่ระบบ</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const REGISTER_ENDPOINT = '/api/auth/register';
+
+    // ควบคุมคำนำหน้าอื่น ๆ
+    $('prefix').addEventListener('change', () => {
+      $('prefix_other').style.display = ($('prefix').value === '_other') ? 'block' : 'none';
+    });
+
+    // จำกัดเบอร์/รหัสไปรษณีย์ให้เป็นตัวเลข
+    $('phone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D+/g,'').slice(0,10); });
+    $('zipcode').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D+/g,'').slice(0,5); });
+
+    function togglePw(id, btn){
+      const el = $(id);
+      el.type = (el.type === 'password') ? 'text' : 'password';
+      btn.textContent = (el.type === 'password') ? 'แสดง' : 'ซ่อน';
+    }
+
+    function showErr(msg){
+      const box = $('err');
+      box.textContent = msg;
+      box.style.display = msg ? 'block' : 'none';
+    }
+
+    function buildAddress(){
+      const parts = [];
+      if ($('addr1').value.trim()) parts.push($('addr1').value.trim());
+      const loc = [
+        $('subdistrict').value.trim() ? 'ต.' + $('subdistrict').value.trim() : '',
+        $('district').value.trim()    ? 'อ.' + $('district').value.trim()    : '',
+        $('province').value.trim()    ? 'จ.' + $('province').value.trim()    : ''
+      ].filter(Boolean).join(' ');
+      if (loc) parts.push(loc);
+      if ($('zipcode').value.trim()) parts.push($('zipcode').value.trim());
+      return parts.join(' ');
+    }
+
+    // เคลียร์ฟอร์มทั้งหมดให้เป็นค่าว่าง + รีเซ็ตสถานะ
+    function clearForm(){
+      $('prefix').value = 'คุณ';
+      $('prefix_other').value = '';
+      $('prefix_other').style.display = 'none';
+
+      ['phone','first_name','last_name','email','password','password2','addr1','subdistrict','district','province','zipcode']
+        .forEach(id => $(id).value = '');
+
+      showErr('');
+      const btn = $('btnSubmit'); btn.disabled = false; btn.textContent = 'สมัครสมาชิก';
+    }
+
+    function openSuccess(){
+      $('successBox').classList.add('show');
+    }
+    function closeSuccess(){
+      $('successBox').classList.remove('show');
+    }
+
+    async function submitForm(){
+      showErr('');
+      const btn = $('btnSubmit');
+      btn.disabled = true; btn.textContent = 'กำลังสมัคร...';
+
+      try {
+        // เก็บค่า
+        const prefix = $('prefix').value === '_other'
+          ? ($('prefix_other').value.trim() || 'คุณ')
+          : $('prefix').value;
+
+        const first = $('first_name').value.trim();
+        const last  = $('last_name').value.trim();
+        const phone = $('phone').value.trim();
+        const email = $('email').value.trim();
+        const pw1   = $('password').value;
+        const pw2   = $('password2').value;
+
+        // ตรวจสอบเบื้องต้น
+        if (!first || !last)          return showErr('กรอกชื่อและนามสกุลให้ครบ'), resetBtn();
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) return showErr('รูปแบบอีเมลไม่ถูกต้อง'), resetBtn();
+        if (phone.length !== 10)      return showErr('กรอกเบอร์โทรศัพท์ 10 หลัก'), resetBtn();
+        if (!pw1 || pw1.length < 6)   return showErr('รหัสผ่านอย่างน้อย 6 ตัวอักษร'), resetBtn();
+        if (pw1 !== pw2)              return showErr('รหัสผ่านไม่ตรงกัน'), resetBtn();
+
+        const full_name = `${prefix} ${first} ${last}`.trim();
+        const address   = buildAddress();
+
+        const payload = { full_name, email, password: pw1, phone, address };
+
+        const r = await fetch(REGISTER_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'include'
+        });
+
+        const data = await r.json().catch(()=> ({}));
+
+        if (!r.ok) {
+          showErr(data.message || 'สมัครสมาชิกไม่สำเร็จ');
+          return resetBtn();
+        }
+
+        // ✅ สำเร็จ: เคลียร์ฟอร์ม + แสดงป๊อปอัป
+        clearForm();
+        openSuccess();
+
+      } catch (err) {
+        showErr('เกิดข้อผิดพลาดภายในระบบ');
+        resetBtn();
+      }
+
+      function resetBtn(){
+        btn.disabled = false; btn.textContent = 'สมัครสมาชิก';
+      }
+    }
+    function clearForm(){
+  $('prefix').value = 'คุณ';
+  $('prefix_other').value = '';
+  $('prefix_other').style.display = 'none';
+  ['phone','first_name','last_name','email','password','password2',
+   'addr1','subdistrict','district','province','zipcode']
+    .forEach(id => $(id).value = '');
+  showErr('');
+  const btn = $('btnSubmit');
+  btn.disabled = false;
+  btn.textContent = 'สมัครสมาชิก';
+}
+
+function openSuccess(){
+  alert('สมัครสมาชิกสำเร็จ!'); // ถ้าต้องการให้ไปหน้า login ต่อใส่บรรทัดล่างนี้
+  // location.href = '/login.html';
+}
+
+  </script>
+</body>
+</html>

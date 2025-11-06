@@ -1,0 +1,323 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>ข้อมูลส่วนตัว • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#f6f7fb;--card:#ffffff;--line:#e7e9ef;--text:#0f172a;--muted:#64748b;
+      --accent:#2563eb;--shadow:0 2px 8px rgba(15,23,42,.06), 0 12px 24px rgba(15,23,42,.06);
+      --radius:14px;--focus:0 0 0 3px rgba(37,99,235,.22)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+    header{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);backdrop-filter:blur(8px);background:color-mix(in oklab,var(--card) 92%,transparent)}
+    header .sp{flex:1}
+    .btn{appearance:none;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;background:#fff;box-shadow:var(--shadow)}
+    .btn.primary{border-color:transparent;background:var(--accent);color:#fff}
+    .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--text)}
+    main{max-width:980px;margin:18px auto;padding:0 16px 80px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+    h2{margin:0 0 16px;text-align:center}
+    .row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;grid-column:1/-1}
+    label{display:block;margin:6px 0 4px;color:var(--muted);font-weight:700}
+    input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    input:focus,select:focus{outline:none;box-shadow:var(--focus)}
+    .muted{color:var(--muted);font-size:12px}
+    .error{color:#fff;background:#ef4444;padding:8px 10px;border-radius:10px;margin-top:12px;display:none}
+    .ok{color:#065f46;background:#d1fae5;padding:8px 10px;border-radius:10px;margin-top:12px;display:none}
+    /* menu */
+    #menu{position:absolute;right:16px;top:56px;background:#fff;border:1px solid var(--line);
+      border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);width:220px;padding:8px;display:none;z-index:20}
+    #menu a,#menu button{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;
+      padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--text);cursor:pointer;font-weight:700}
+    #menu a:hover,#menu button:hover{background:#f8fafc}
+  </style>
+</head>
+<body>
+  <header>
+    <button class="btn" onclick="location.href='/user/user.html'">ย้อนกลับ</button>
+    <div class="sp"></div>
+    <b>โปรไฟล์</b>
+    <div class="sp"></div>
+    <button class="btn ghost" data-menu-btn onclick="toggleMenu()" aria-haspopup="menu" aria-expanded="false" title="เมนู" style="display:grid;place-items:center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </header>
+
+  <div id="menu" role="menu" aria-label="เมนู">
+  <a href="/user/cart.html">🛒 ไปตะกร้า</a>
+  <a href="/user/profile.html">👤 โปรไฟล์</a>
+  <a href="/user/user.html">🕶️ เลือกสินค้า</a>
+  <button onclick="logout()">🚪 ออกจากระบบ</button>
+</div>
+
+  <main>
+    <div class="card">
+      <h2>ข้อมูลส่วนตัว</h2>
+
+      <div class="row">
+        <div>
+          <label>คำนำหน้า *</label>
+          <select id="pre_name">
+            <option value="">— เลือก —</option>
+            <option>นาย</option>
+            <option>นาง</option>
+            <option>นางสาว</option>
+            <option>คุณ</option>
+          </select>
+        </div>
+        <div>
+          <label>เบอร์โทรศัพท์ *</label>
+          <input id="phone" inputmode="numeric" placeholder="XXXXXXXXXX" maxlength="10" pattern="0[0-9]{8,9}">
+        </div>
+        <div class="two">
+          <div>
+            <label>ชื่อ *</label>
+            <input id="first_name">
+          </div>
+          <div>
+            <label>นามสกุล *</label>
+            <input id="last_name">
+          </div>
+        </div>
+        <div style="grid-column:1/-1">
+          <label>อีเมล</label>
+          <input id="email" readonly style="background:#f3f4f6">
+        </div>
+
+        <div style="grid-column:1/-1">
+          <label>บ้านเลขที่ / ที่อยู่ *</label>
+          <input id="addr_line" placeholder="เช่น 212 ม.12">
+        </div>
+        <div>
+          <label>จังหวัด *</label>
+          <input id="addr_province">
+        </div>
+        <div>
+          <label>อำเภอ/เขต *</label>
+          <input id="addr_district">
+        </div>
+        <div class="two">
+          <div>
+            <label>ตำบล/แขวง *</label>
+            <input id="addr_subdistrict">
+          </div>
+          <div>
+            <label>รหัสไปรษณีย์</label>
+            <input id="addr_zip" inputmode="numeric" maxlength="5" pattern="[0-9]{5}">
+          </div>
+        </div>
+      </div>
+
+      <div id="err" class="error"></div>
+      <div id="ok" class="ok"></div>
+
+      <div style="grid-column:1/-1">
+        <label>รหัสผ่าน</label>
+        <div class="two">
+          <input id="password_mask" type="password" value="********" disabled>
+          <a class="btn ghost" href="/user/change-password.html">แก้ไขรหัสผ่าน</a>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:10px">
+        <button id="saveBtn" class="btn primary" onclick="saveProfile()">บันทึกข้อมูล</button>
+      </div>
+    </div>
+  </main>
+
+<script>
+  function showErr(msg){ const el=document.getElementById('err'); if(!el) return; el.textContent=msg||''; el.style.display = msg? 'block':'none'; }
+  function showOk(msg){ const el=document.getElementById('ok'); if(!el) return; el.textContent=msg||''; el.style.display = msg? 'block':'none'; }
+
+  // ---- Helpers: ชื่อ ----
+  function parseFullName(full=''){
+    const tk = full.trim().split(/\s+/).filter(Boolean);
+    const titles = ['นาย','นาง','นางสาว','คุณ','ด.ช.','ด.ญ.','Mr.','Mrs.','Ms.'];
+    let pre='', first='', last='';
+    if(tk.length){
+      if(titles.includes(tk[0])) pre = tk.shift();
+      if(tk.length===1) first = tk[0];
+      else if(tk.length>=2){ first = tk.slice(0,-1).join(' '); last = tk[tk.length - 1]; }
+    }
+    return { pre, first, last };
+  }
+  function composeFullName(){
+    const pre=document.getElementById('pre_name').value.trim();
+    const first=document.getElementById('first_name').value.trim();
+    const last=document.getElementById('last_name').value.trim();
+    return [pre,first,last].filter(Boolean).join(' ');
+  }
+
+  // ---- Helpers: ที่อยู่ ----
+  function prefillAddressFields(addr=''){
+    // Reset fields first
+    document.getElementById('addr_line').value = '';
+    document.getElementById('addr_subdistrict').value = '';
+    document.getElementById('addr_district').value = '';
+    document.getElementById('addr_province').value = '';
+    document.getElementById('addr_zip').value = '';
+
+    let raw = String(addr || '').replace(/[.,|]+/g,' ').replace(/\s+/g,' ').trim();
+    if(!raw) return;
+
+    // Extract zipcode if present at end
+    const zipM = raw.match(/(\d{5})\s*$/);
+    if(zipM){ document.getElementById('addr_zip').value = zipM[1]; raw = raw.replace(zipM[0],'').trim(); }
+
+    // Try keyword-based extraction first
+    let tokens = raw.split(/\s+/);
+    const takeByKeyword = (kwRegex, fieldId, cleanupRegex) => {
+      const idx = tokens.findLastIndex(x=> kwRegex.test(x));
+      if(idx >= 0){
+        const v = tokens.splice(idx,1)[0].replace(cleanupRegex,'').trim();
+        if(v) document.getElementById(fieldId).value = v;
+      }
+    };
+
+    takeByKeyword(/จังหวัด/, 'addr_province', /จังหวัด/g);
+    // district: อำเภอ, อ., เขต
+    let beforeDistrictLen = tokens.length;
+    takeByKeyword(/^(อำเภอ|อ\.|เขต)/, 'addr_district', /^(อำเภอ|อ\.|เขต)/g);
+    // subdistrict: ตำบล, ต., แขวง
+    takeByKeyword(/^(ตำบล|ต\.|แขวง)/, 'addr_subdistrict', /^(ตำบล|ต\.|แขวง)/g);
+
+    // Fallback heuristic when keywords not present: assume structure
+    // [addr_line ...] [subdistrict] [district] [province]
+    tokens = tokens.filter(Boolean);
+    const getVal = id => document.getElementById(id).value.trim();
+    if(!getVal('addr_province') && tokens.length){
+      document.getElementById('addr_province').value = tokens.pop();
+    }
+    if(!getVal('addr_district') && tokens.length){
+      document.getElementById('addr_district').value = tokens.pop();
+    }
+    if(!getVal('addr_subdistrict') && tokens.length){
+      document.getElementById('addr_subdistrict').value = tokens.pop();
+    }
+
+    document.getElementById('addr_line').value = tokens.join(' ').trim();
+  }
+  function composeAddress(){
+    const parts = [
+      document.getElementById('addr_line').value.trim(),
+      document.getElementById('addr_subdistrict').value.trim(),
+      document.getElementById('addr_district').value.trim(),
+      document.getElementById('addr_province').value.trim(),
+      document.getElementById('addr_zip').value.trim()
+    ].filter(Boolean);
+    return parts.join(' ');
+  }
+
+  function applyProfileData(d){
+    const {pre,first,last} = parseFullName(d.full_name||'');
+    const sel = document.getElementById('pre_name');
+    if(pre && ![...sel.options].some(o=>o.value===pre)){
+      sel.add(new Option(pre, pre, true, true));
+    } else {
+      sel.value = pre || '';
+    }
+    document.getElementById('first_name').value = first || '';
+    document.getElementById('last_name').value  = last  || '';
+    document.getElementById('phone').value      = d.phone || '';
+    document.getElementById('email').value      = d.email || '';
+    prefillAddressFields(d.address || '');
+  }
+
+  // ---- โหลด/บันทึกโปรไฟล์ ----
+  async function loadProfile(){
+    const r = await fetch('/api/user/profile', { credentials:'include' });
+    if(r.status===401){ location.href='/login.html'; return; }
+    const d = await r.json().catch(()=> ({}));
+    applyProfileData(d);
+  }
+
+  function validateForm(){
+    showErr(''); showOk('');
+    const req = [['pre_name','คำนำหน้า'],['phone','เบอร์โทรศัพท์'],['first_name','ชื่อ'],['last_name','นามสกุล'],['addr_line','บ้านเลขที่/ที่อยู่'],['addr_province','จังหวัด'],['addr_district','อำเภอ/เขต'],['addr_subdistrict','ตำบล/แขวง']];
+    for(const [id] of req){
+      const el=document.getElementById(id);
+      if(!el.value.trim()){ showErr('กรุณากรอกข้อมูลให้ครบถ้วน'); el.focus(); return false; }
+    }
+    const phone=document.getElementById('phone').value.trim(); if(!/^0\d{8,9}$/.test(phone)){ showErr('รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง'); return false; }
+    const zip=document.getElementById('addr_zip').value.trim(); if(zip && !/^\d{5}$/.test(zip)){ showErr('รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก'); return false; }
+    return true;
+  }
+
+  async function saveProfile(){
+    if(!validateForm()) return;
+    const btn = document.getElementById('saveBtn'); btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; showErr(''); showOk('');
+    const body = {
+      full_name: composeFullName() || null,
+      phone: document.getElementById('phone').value.trim() || null,
+      address: composeAddress() || null
+    };
+    try{
+      const r = await fetch('/api/user/profile', {
+        method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(body)
+      });
+      const d = await r.json().catch(()=> ({}));
+      if(r.ok){ showOk('บันทึกข้อมูลเรียบร้อย'); await loadProfile(); }
+      else{ showErr(d.message || 'บันทึกไม่สำเร็จ โปรดลองอีกครั้ง'); }
+    }catch{ showErr('เกิดข้อผิดพลาดในการเชื่อมต่อ'); }
+    finally{ btn.disabled = false; btn.textContent = 'บันทึกข้อมูล'; }
+  }
+
+  // ---- เมนู ----
+  function toggleMenu(){
+    const m = document.getElementById('menu');
+    const btn = document.querySelector('[data-menu-btn]');
+    const open = m.style.display === 'block';
+    m.style.display = open ? 'none' : 'block';
+    if (btn) btn.setAttribute('aria-expanded', String(!open));
+
+    const closer = (e)=>{
+      if(!m.contains(e.target) && !btn.contains(e.target)){
+        m.style.display='none';
+        btn && btn.setAttribute('aria-expanded','false');
+        document.removeEventListener('click', closer);
+      }
+    };
+    if(!open) setTimeout(()=>document.addEventListener('click', closer),0);
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const m = document.getElementById('menu');
+    const btn = document.querySelector('[data-menu-btn]');
+    if(m){
+      m.addEventListener('click', (e)=>{
+        const t = e.target.closest('a,button');
+        if(t){
+          m.style.display='none';
+          btn && btn.setAttribute('aria-expanded','false');
+        }
+      });
+    }
+    const phone = document.getElementById('phone');
+    const zip = document.getElementById('addr_zip');
+    if(phone){
+      phone.addEventListener('input', e=>{
+        e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+      });
+    }
+    if(zip){
+      zip.addEventListener('input', e=>{
+        e.target.value = e.target.value.replace(/\D/g,'').slice(0,5);
+      });
+    }
+  });
+
+  async function logout(){
+    try{ await fetch('/api/auth/logout',{method:'POST',credentials:'include'}); }catch(e){}
+    location.href='/login.html';
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>

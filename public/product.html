@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>รายละเอียดสินค้า • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --line:#e6e8ee; --text:#0f172a; --muted:#64748b;
+      --accent:#2563eb; --accent-2:#1e40af; --ring:#c7d2fe; --ok:#10b981; --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--text);
+         background:linear-gradient(180deg,#f7f8ff 0%, #f6f7fb 100%)}
+
+    /* Header */
+    header{
+      position:sticky; top:0; z-index:20;
+      background:linear-gradient(90deg,#ffffff 0%, #f8faff 100%);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:saturate(150%) blur(6px);
+      padding:10px 14px; display:flex; align-items:center; gap:12px;
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px; cursor:pointer}
+    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 6px rgba(37,99,235,.12)}
+    header .sp{flex:1}
+    .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;transition:transform .05s ease, box-shadow .2s ease}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:var(--accent);color:#fff;box-shadow:0 8px 24px rgba(37,99,235,.18)}
+    .btn.primary:hover{background:var(--accent-2)}
+    .btn.ghost{background:#fff;border:1px solid var(--accent);color:var(--accent)}
+    a.btn{text-decoration:none;display:inline-block}
+
+    /* Layout */
+    main{max-width:1100px;margin:14px auto;padding:0 14px 80px}
+    .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
+    @media (max-width:900px){ .wrap{grid-template-columns:1fr} }
+
+    /* Image */
+    .img-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px}
+    .img-card .stage{position:relative;overflow:hidden;border-radius:12px}
+    .img-card img{width:100%;height:auto;display:block;transition:transform .4s ease}
+    .img-card:hover img{transform:scale(1.03)}
+    .ribbon{position:absolute;left:12px;top:12px;background:linear-gradient(90deg,#22c55e,#10b981);color:#fff;
+            font-size:11px;font-weight:900;padding:5px 9px;border-radius:999px;box-shadow:0 6px 16px rgba(16,185,129,.25)}
+    .oos{position:absolute;inset:0;background:rgba(255,255,255,.75);display:grid;place-items:center;
+         font-weight:900;color:#0f172a;backdrop-filter:blur(2px)}
+
+    /* Info card */
+    .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+    h1{font-size:24px;margin:2px 0 6px}
+    .meta{color:var(--muted)}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+    .badge{background:#eef2ff;border:1px solid #e5e7ff;color:#1f2937;font-size:11px;border-radius:999px;padding:4px 10px}
+    .price{font-size:28px;font-weight:900;margin:12px 0 8px}
+    .stock{font-weight:800}
+    .ok{color:var(--ok)} .danger{color:var(--danger)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .btn.secondary{background:#fff;border:1px solid var(--line);color:#0f172a}
+
+    /* Spec & Description */
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    @media (max-width:600px){ .grid{grid-template-columns:1fr} }
+    .spec{background:#fff;border:1px solid var(--line);border-radius:16px}
+    .spec h3,.desc h3{margin:12px 16px 0}
+    .spec table{width:100%;border-collapse:collapse}
+    .spec th,.spec td{padding:10px 16px;border-top:1px solid var(--line);text-align:left}
+    .spec th{width:40%;color:var(--muted);font-weight:600;background:#fafbff}
+    .desc{background:#fff;border:1px solid var(--line);border-radius:16px;padding:0 0 8px}
+    .desc .box{padding:12px 16px;border-top:1px solid var(--line)}
+
+    /* Sticky CTA (mobile) */
+    .cta-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+             padding:10px 14px;display:none;gap:10px}
+    .cta-bar .btn{flex:1}
+    @media (max-width:900px){ .cta-bar{display:flex} }
+
+    /* Skeleton */
+    .sk{border-radius:14px;border:1px solid var(--line);background:#fff;overflow:hidden}
+    .sk-thumb{width:100%;aspect-ratio:1/1;background:linear-gradient(90deg,#eef1f6,#f6f7fb,#eef1f6);background-size:200% 100%;animation:sh 1.2s infinite linear}
+    .sk-line{height:12px;margin:10px;border-radius:8px;background:linear-gradient(90deg,#eef1f6,#f6f7fb,#eef1f6);background-size:200% 100%;animation:sh 1.2s infinite linear}
+    @keyframes sh{0%{background-position:0 0}100%{background-position:-200% 0}}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+    .panel{background:#fff;border-radius:16px;width:min(480px,96vw);border:1px solid var(--line);padding:16px;box-shadow:0 24px 60px rgba(0,0,0,.15)}
+    .panel h3{margin:0 0 6px}
+    .panel p{margin:0 0 12px}
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand" onclick="location.href='/shop.html'">
+      <div class="dot"></div><span>LOOK UP</span>
+    </div>
+    <div class="sp"></div>
+    <a class="btn ghost" href="/shop.html">กลับหน้ารวม</a>
+    <a class="btn ghost" href="/login.html">เข้าสู่ระบบ</a>
+    <a class="btn primary" href="/register.html">สมัครสมาชิก</a>
+  </header>
+
+  <main>
+    <!-- Content -->
+    <div class="wrap">
+      <!-- Image -->
+      <div id="imgWrap" class="img-card">
+        <div class="stage">
+          <img id="img" src="/uploads/noimg.png" alt="product">
+          <div id="ribbon" class="ribbon" style="display:none">ใหม่</div>
+          <div id="oos" class="oos" style="display:none">สินค้าหมด</div>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="card" id="infoCard">
+        <!-- skeleton lines (hidden after load) -->
+        <div id="skInfo">
+          <div class="sk"><div class="sk-line" style="height:18px;width:70%"></div></div>
+          <div class="sk"><div class="sk-line" style="height:12px;width:40%"></div></div>
+          <div class="sk"><div class="sk-line" style="height:12px;width:60%"></div></div>
+        </div>
+
+        <div id="info" style="display:none">
+          <h1 id="name">—</h1>
+          <div class="meta" id="meta">—</div>
+          <div class="badges">
+            <span class="badge" id="typeBadge" style="display:none"></span>
+            <span class="badge">สต๊อก: <span id="stock">—</span></span>
+          </div>
+          <div class="price" id="price">—</div>
+          <div class="actions">
+            <button id="btnAdd" class="btn primary" onclick="requireLogin()">หยิบใส่ตะกร้า</button>
+            <button id="btnBuy" class="btn secondary" onclick="requireLogin()">ซื้อเลย</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spec & Description -->
+    <div class="grid">
+      <div class="spec">
+        <h3>สเปกสินค้า</h3>
+        <table>
+          <tr><th>ยี่ห้อ</th><td id="brandTd">-</td></tr>
+          <tr><th>รุ่น / SKU</th><td id="modelTd">-</td></tr>
+          <tr><th>ประเภท</th><td id="typeTd">-</td></tr>
+          <tr><th>รูปทรงกรอบ</th><td id="shapeTd">-</td></tr>
+          <tr><th>ความกว้างเลนส์</th><td id="lensTd">-</td></tr>
+          <tr><th>ความกว้างจมูก</th><td id="bridgeTd">-</td></tr>
+          <tr><th>ความยาวขา</th><td id="templeTd">-</td></tr>
+          <tr><th>หน้ากว้าง</th><td id="frontTd">-</td></tr>
+        </table>
+      </div>
+      <div class="desc">
+        <h3>รายละเอียดสินค้า</h3>
+        <div id="desc" class="box">—</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Sticky CTA (mobile) -->
+  <div class="cta-bar" id="ctaBar">
+    <button id="mAdd" class="btn secondary" onclick="requireLogin()">หยิบใส่ตะกร้า</button>
+    <button id="mBuy" class="btn primary" onclick="requireLogin()">ซื้อเลย</button>
+  </div>
+
+  <!-- Login modal -->
+  <div id="loginModal" class="modal" role="dialog" aria-modal="true">
+    <div class="panel">
+      <h3>เข้าสู่ระบบก่อนทำรายการ</h3>
+      <p class="muted">กรุณาเข้าสู่ระบบหรือสมัครสมาชิกเพื่อดำเนินการต่อ</p>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+        <a class="btn ghost" href="/login.html">เข้าสู่ระบบ</a>
+        <a class="btn primary" href="/register.html">สมัครสมาชิก</a>
+        <button class="btn" onclick="hideModal()">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $id = (x)=>document.getElementById(x);
+    const pid = new URL(location.href).searchParams.get('id');
+
+    function formatBaht(n){ return Number(n||0).toLocaleString('th-TH') + ' บาท'; }
+
+    function showModal(){ $id('loginModal').style.display='flex'; }
+    function hideModal(){ $id('loginModal').style.display='none'; }
+    function requireLogin(){ showModal(); }
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') hideModal(); });
+    $id('loginModal').addEventListener('click', e=>{ if(e.target.id==='loginModal') hideModal(); });
+
+    async function loadProduct(){
+      if(!pid){ location.href='/shop.html'; return; }
+
+      // show skeletons
+      $id('skInfo').style.display='block';
+      $id('info').style.display='none';
+
+      const r = await fetch('/api/catalog/products/' + pid);
+      const p = await r.json();
+      if(!r.ok){ alert(p.message || 'ไม่พบสินค้า'); location.href='/shop.html'; return; }
+
+      // image & states
+      $id('img').src = p.image_url || '/uploads/noimg.png';
+      $id('ribbon').style.display = p.is_new ? 'inline-flex' : 'none';
+      const isOOS = Number(p.stock) <= 0;
+      $id('oos').style.display = isOOS ? 'grid' : 'none';
+
+      // main
+      $id('name').textContent = p.name || '-';
+      $id('meta').textContent = `${p.brand_name || '-'} • รุ่น ${p.model || '-'}`;
+      if (p.glasses_type){
+        $id('typeBadge').style.display='inline-flex';
+        $id('typeBadge').textContent = p.glasses_type;
+      } else {
+        $id('typeBadge').style.display='none';
+      }
+      $id('stock').textContent = p.stock ?? 0;
+      $id('price').textContent = formatBaht(p.price);
+
+      // spec
+      $id('brandTd').textContent = p.brand_name || '-';
+      $id('modelTd').textContent = p.model || '-';
+      $id('typeTd').textContent  = p.glasses_type || '-';
+      $id('shapeTd').textContent = p.frame_shape || '-';
+      $id('lensTd').textContent  = (p.lens_width_mm ?? '-') + (p.lens_width_mm ? ' มม.' : '');
+      $id('bridgeTd').textContent= (p.bridge_mm ?? '-') + (p.bridge_mm ? ' มม.' : '');
+      $id('templeTd').textContent= (p.temple_mm ?? '-') + (p.temple_mm ? ' มม.' : '');
+      $id('frontTd').textContent = (p.front_width_mm ?? '-') + (p.front_width_mm ? ' มม.' : '');
+
+      // description
+      $id('desc').textContent = p.description || '-';
+
+      // disable CTA when out of stock
+      ['btnAdd','btnBuy','mAdd','mBuy'].forEach(id=>{
+        const el = $id(id);
+        if(!el) return;
+        el.disabled = isOOS;
+        el.textContent = isOOS ? (id.includes('Buy')?'ซื้อไม่ได้ (หมด)':'สินค้าหมด') : (id.includes('Buy')?'ซื้อเลย':'หยิบใส่ตะกร้า');
+      });
+
+      // show info
+      $id('skInfo').style.display='none';
+      $id('info').style.display='block';
+    }
+
+    loadProduct();
+  </script>
+</body>
+</html>

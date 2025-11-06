@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>รายละเอียดสินค้า • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{--bg:#f6f7f8;--card:#fff;--line:#e9e9ee;--text:#111827;--accent:#2563eb;--ink:#111827}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;margin:0;background:var(--bg);color:var(--text)}
+    /* header */
+    header{position:sticky;top:0;z-index:10;display:flex;gap:8px;align-items:center;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+    header .sp{flex:1}
+    .btn{appearance:none;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:800}
+    .btn.primary{background:var(--accent);color:#fff}
+    .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+    .btn.dark{background:#111827;color:#fff}
+    /* layout */
+    main{max-width:980px;margin:16px auto;padding:0 16px 40px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}
+    .row{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:18px}
+    img{width:100%;border-radius:10px;border:1px solid #eee;object-fit:cover}
+    .muted{color:#6b7280}
+    dl{display:grid;grid-template-columns:140px 1fr;gap:6px 10px}
+    dt{color:#374151}
+    /* toast */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:grid;gap:10px;z-index:50}
+    .toast{background:#fff;border:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.07);padding:12px 14px;border-radius:12px;font-weight:700}
+    @media (max-width:760px){ .row{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="btn ghost" onclick="goProducts()">⬅️ กลับไปเลือกสินค้า</button>
+    <div class="sp"></div>
+    <b>LOOK UP</b>
+    <div class="sp"></div>
+    <button class="btn primary" onclick="goCart()">ตะกร้า</button>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="row">
+        <div><img id="img" src="" alt=""></div>
+        <div>
+          <h2 id="name">สินค้า</h2>
+          <div class="muted" id="brandModel"></div>
+          <h3 id="price" style="margin:10px 0 6px">0 บาท</h3>
+          <div class="muted" id="stock"></div>
+
+          <div style="margin:14px 0; display:flex; gap:10px; flex-wrap:wrap">
+            <button id="btnAdd" class="btn primary" onclick="addToCart()">หยิบใส่ตะกร้า</button>
+            <button id="btnBuy" class="btn dark" onclick="buyNow()">ซื้อเลย</button>
+          </div>
+
+          <h3>รายละเอียด</h3>
+          <dl>
+            <dt>ประเภท</dt><dd id="type">-</dd>
+            <dt>รูปทรง</dt><dd id="shape">-</dd>
+            <dt>เลนส์ (มม.)</dt><dd id="lens">-</dd>
+            <dt>สันจมูก (มม.)</dt><dd id="bridge">-</dd>
+            <dt>ขา (มม.)</dt><dd id="temple">-</dd>
+            <dt>หน้ากว้าง (มม.)</dt><dd id="front">-</dd>
+          </dl>
+
+          <p id="desc" class="muted"></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toasts" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const pid = Number(new URLSearchParams(location.search).get('id')) || 0;
+    const toast = (m)=>{ const w=$('toasts'); const t=document.createElement('div'); t.className='toast'; t.textContent=m; w.appendChild(t); setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),260)}, 2000); };
+
+    async function loadProduct(){
+      const r = await fetch(`/api/catalog/products/${pid}`);
+      const p = await r.json();
+      if (p.message || !p.id) { alert(p.message || 'ไม่พบสินค้า'); history.back(); return; }
+      $('img').src = p.image_url || '/uploads/noimg.png';
+      $('name').textContent = p.name;
+      $('brandModel').textContent = `${p.brand_name||'-'} • รุ่น ${p.model||'-'}`;
+      $('price').textContent = `${Number(p.price).toLocaleString()} บาท`;
+      $('stock').textContent = `คงเหลือ ${p.stock} ชิ้น`;
+      $('type').textContent = p.glasses_type || '-';
+      $('shape').textContent = p.frame_shape || '-';
+      $('lens').textContent = p.lens_width_mm || '-';
+      $('bridge').textContent = p.bridge_mm || '-';
+      $('temple').textContent = p.temple_mm || '-';
+      $('front').textContent = p.front_width_mm || '-';
+      $('desc').textContent = p.description || '';
+    }
+
+    // เพิ่มสินค้าไปยังตะกร้า (รองรับทั้ง /cart/add และ POST /cart)
+    async function addToCart(){
+      const btnAdd = $('btnAdd');
+      btnAdd.disabled = true; btnAdd.textContent = 'กำลังเพิ่ม…';
+      const payload = { product_id: pid, qty: 1 };
+      try{
+        // พยายามยิง /cart/add ก่อน ถ้าไม่ ok ค่อย fallback ไป POST /cart
+        let r = await fetch('/api/user/cart/add', {
+          method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(payload)
+        });
+        if(r.status === 404){
+          r = await fetch('/api/user/cart', {
+            method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body: JSON.stringify(payload)
+          });
+        }
+        if(r.status === 401){ location.href = '/login.html'; return false; }
+        const d = await r.json().catch(()=>({}));
+        if(!r.ok){ alert(d.message || 'เพิ่มลงตะกร้าไม่สำเร็จ'); return false; }
+        toast('เพิ่มลงตะกร้าแล้ว');
+        return true;
+      }catch(e){ alert('เครือข่ายมีปัญหา'); return false; }
+      finally{ btnAdd.disabled = false; btnAdd.textContent = 'หยิบใส่ตะกร้า'; }
+    }
+
+    // ซื้อเลย: เพิ่มลงตะกร้าให้สำเร็จก่อน แล้วพาไปหน้าตะกร้า
+    async function buyNow(){
+      const btn = $('btnBuy');
+      btn.disabled = true; btn.textContent = 'กำลังดำเนินการ…';
+      const ok = await addToCart();
+      if(ok) location.href = '/user/cart.html';
+      else btn.disabled = false, btn.textContent = 'ซื้อเลย';
+    }
+
+    function goCart(){ location.href='/user/cart.html'; }
+    function goProducts(){ location.href='/user/user.html'; }
+
+    loadProduct();
+  </script>
+</body>
+</html>

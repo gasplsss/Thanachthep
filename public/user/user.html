@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>บัญชีของฉัน • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* ===================== THEME ===================== */
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --line:#e7e9ef; --text:#0f172a; --muted:#64748b; --brand:#0f172a;
+      --accent:#2563eb; --accent-2:#7c3aed; --danger:#ef4444; --success:#16a34a; --warn:#f59e0b;
+      --shadow:0 2px 8px rgba(15,23,42,.06), 0 12px 24px rgba(15,23,42,.06);
+      --radius:14px; --radius-sm:10px; --radius-lg:22px; --focus:0 0 0 3px rgba(37,99,235,.2);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{ --bg:#0b1020; --card:#0f1528; --line:#20263a; --text:#e5e7eb; --muted:#94a3b8; --brand:#e5e7eb;
+             --shadow:0 2px 10px rgba(0,0,0,.45), 0 20px 40px rgba(0,0,0,.35); }
+      .thumb{border-color:#1b2236}
+      .pill{background:#101b35}
+      .search{background:#0b142b}
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+
+    /* ===================== HEADER ===================== */
+    header{position:sticky;top:0;backdrop-filter:blur(8px);background:color-mix(in oklab, var(--card) 92%, transparent);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:10px;z-index:20}
+    header .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;letter-spacing:.3px;line-height:1}
+    header .brand span{color:var(--brand)}
+    header .brand b{background:linear-gradient(135deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+    header .sp{flex:1}
+
+    /* Icon buttons */
+    .iconbtn{background:var(--card);border:1px solid var(--line);border-radius:999px;width:40px;height:40px;display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow);transition:.18s ease;user-select:none;position:relative}
+    .iconbtn:hover{transform:translateY(-1px)}
+    .iconbtn:active{transform:translateY(0)}
+    .iconbtn:focus-visible{outline:none;box-shadow:var(--focus)}
+
+    /* Cart badge */
+    .badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--danger);color:#fff;border:2px solid var(--card);display:none;place-items:center;font-size:11px;font-weight:800;line-height:1}
+
+    /* ===================== CONTROLS ===================== */
+    .btn{appearance:none;border:0;border-radius:var(--radius-sm);padding:10px 14px;font-weight:800;cursor:pointer;transition:.18s ease;box-shadow:var(--shadow)}
+    .btn:focus-visible{outline:none;box-shadow:var(--focus), var(--shadow)}
+    .btn.primary{background:var(--accent);color:#fff}
+    .btn.primary:hover{filter:brightness(1.05)}
+    .btn.ghost{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+    .btn.ghost:hover{background:color-mix(in oklab, var(--accent) 6%, #fff)}
+    .btn.danger{background:var(--danger);color:#fff}
+
+    select, input[type="text"], textarea, input:not([type]){
+      padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;transition:.18s ease;min-height:40px
+    }
+    select:focus, input:focus, textarea:focus{outline:none;box-shadow:var(--focus)}
+
+    .search{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;box-shadow:var(--shadow)}
+    .search input{border:0;outline:0;min-width:200px;width:28vw}
+
+    /* ===================== LAYOUT ===================== */
+    main{max-width:1200px;margin:14px auto;padding:0 14px 80px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .filters{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+
+    /* ===================== CARDS/GRID ===================== */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);transition:transform .18s ease, border-color .18s ease}
+    .card:hover{transform:translateY(-2px);border-color:color-mix(in oklab, var(--accent) 26%, var(--line))}
+
+    .thumb{width:100%;aspect-ratio:1.1/1;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:block;overflow:hidden}
+    .thumb-wrap{position:relative}
+    .thumb-wrap::after{content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+    /* NEW ribbon */
+    .ribbon{position:absolute;top:8px;left:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.2px;box-shadow:var(--shadow)}
+
+    .title{font-weight:800;margin:8px 0 4px;letter-spacing:.2px}
+    .muted{color:var(--muted);font-size:12px}
+
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#eef2ff;color:#1f2937;font-size:12px;font-weight:700;border:1px solid color-mix(in oklab, var(--accent) 20%, var(--line))}
+    .pill.danger{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    .pill.ok{background:#eaf9ef;color:#065f46;border-color:#bbf7d0}
+    .pill.warn{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+
+    .hidden{display:none}
+
+    /* ===================== MENU POPOVER ===================== */
+    #menu{position:absolute;right:12px;top:60px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);width:240px;padding:8px;display:none;z-index:30;animation:pop .12s ease}
+    #menu a,#menu button{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--text);cursor:pointer;font-weight:600}
+    #menu a:hover,#menu button:hover{background:color-mix(in oklab, var(--accent) 7%, #fff)}
+    @keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+    section{margin-top:14px;animation:fade .2s ease}
+    @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+    /* ===================== TABLE ===================== */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    thead th{font-size:12px;color:var(--muted);font-weight:800;padding:0 10px}
+    tbody tr{background:var(--card);box-shadow:var(--shadow)}
+    tbody td{padding:12px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    tbody tr td:first-child{border-left:1px solid var(--line);border-top-left-radius:12px;border-bottom-left-radius:12px}
+    tbody tr td:last-child{border-right:1px solid var(--line);border-top-right-radius:12px;border-bottom-right-radius:12px}
+
+    /* ===================== SKELETONS ===================== */
+    .skeleton{position:relative;overflow:hidden;background:color-mix(in oklab,#cfd7e7 20%, #fff);border-radius:12px}
+    .skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-100%);animation:shimmer 1.2s infinite}
+    @keyframes shimmer{to{transform:translateX(100%)}}
+    .s-card{height:280px;border:1px solid var(--line)}
+
+    /* ===================== TOAST ===================== */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:grid;gap:10px;z-index:50}
+    .toast{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);padding:12px 14px;border-radius:12px;font-weight:700}
+
+    /* ===================== UTIL ===================== */
+    label{display:block;margin:8px 0 6px;font-weight:700;color:var(--muted)}
+    .subtle{font-size:12px;color:var(--muted)}
+
+    @media (max-width:680px){
+      .search input{width:38vw}
+      .btn{width:100%}
+      .filters > *{flex:1 1 140px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="#" class="brand" onclick="event.preventDefault(); showSection('sec-products'); loadProducts();">
+      <span>LOOK</span> <b>UP</b>
+    </a>
+    <div class="sp"></div>
+
+    <div class="search" role="search">
+      <span aria-hidden="true">🔎</span>
+      <input id="q" placeholder="ค้นหาสินค้า / รุ่น" onkeydown="if(event.key==='Enter') loadProducts()" aria-label="ช่องค้นหา" />
+    </div>
+
+    <!-- โปรไฟล์ / ตะกร้า (มี badge) / เมนู -->
+    <button class="iconbtn" title="โปรไฟล์" onclick="location.href='/user/profile.html'" aria-label="โปรไฟล์">👤</button>
+
+    <button class="iconbtn" title="ตะกร้าสินค้า" onclick="location.href='/user/cart.html'" aria-label="ตะกร้าสินค้า">
+      🛒
+      <b id="cartBadge" class="badge" aria-live="polite">0</b>
+    </button>
+
+    <button class="iconbtn" title="เมนู" onclick="toggleMenu()" aria-haspopup="menu" aria-expanded="false">☰</button>
+
+    <div id="menu" role="menu" aria-label="เมนูผู้ใช้">
+      <a href="#" onclick="event.preventDefault(); showSection('sec-orders'); loadOrders()">🧾 <span>คำสั่งซื้อของฉัน</span></a>
+      <a href="/user/profile.html">👤 <span>ข้อมูลส่วนตัว</span></a>
+      <a href="/user/change-password.html">🔐 <span>เปลี่ยนรหัสผ่าน</span></a>
+      <button onclick="logout()">🚪 ออกจากระบบ</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============== สินค้า (ค่าเริ่มต้น) ============== -->
+    <section id="sec-products">
+      <div class="filters">
+        <select id="brand" aria-label="เลือกแบรนด์"><option value="">— แบรนด์ —</option></select>
+        <select id="type" aria-label="เลือกประเภท">
+          <option value="">— ประเภท —</option>
+          <option value="Eyeglasses">Eyeglasses</option>
+          <option value="Sunglasses">Sunglasses</option>
+        </select>
+        <select id="is_new" aria-label="ตัวกรองสินค้าใหม่"><option value="">— ทั้งหมด —</option><option value="1">สินค้าใหม่</option></select>
+        <button class="btn primary" onclick="loadProducts()">ค้นหา</button>
+      </div>
+
+      <div id="list" class="grid" aria-live="polite"></div>
+      <div id="empty" class="muted hidden">ไม่พบสินค้า</div>
+    </section>
+
+    <!-- ============== คำสั่งซื้อ ============== -->
+    <section id="sec-orders" class="hidden">
+      <div class="card">
+        <h2 style="margin:0 0 8px">คำสั่งซื้อของฉัน</h2>
+        <table id="tblOrders">
+          <thead><tr><th>Order</th><th>วันที่</th><th>สถานะ</th><th>จำนวน</th><th>ยอด (บาท)</th><th>เลขพัสดุ</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="subtle" style="margin-top:6px">* คลิก “ดู” เพื่อดูรายละเอียด/อัปโหลดสลิป</div>
+      </div>
+    </section>
+
+    <!-- debug -->
+    <section class="card">
+      <h3 style="margin:0 0 6px">ผลลัพธ์ (debug)</h3>
+      <pre id="out" style="white-space:pre-wrap"></pre>
+    </section>
+  </main>
+
+  <div id="toasts" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const out = $('out');
+
+  /* ---------- Helpers ---------- */
+  const fmtBaht = n => (Number(n)||0).toLocaleString('th-TH', { minimumFractionDigits: 0 });
+  function toast(msg){
+    const wrap = $('toasts');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(), 260); }, 2200);
+  }
+  function setSkeletonCards(n=8){
+    $('list').innerHTML = Array.from({length:n},()=>`<div class="skeleton s-card"></div>`).join('');
+    $('empty').classList.add('hidden');
+  }
+
+  /* ---------- Menu ---------- */
+  function toggleMenu(){
+    const m = $('menu');
+    const open = m.style.display==='block';
+    m.style.display = open ? 'none' : 'block';
+    const closer = (e) => {
+      if(!m.contains(e.target) && !e.target.closest('.iconbtn')) {
+        m.style.display='none';
+        document.removeEventListener('click', closer);
+      }
+    };
+    if(!open) setTimeout(()=>document.addEventListener('click', closer), 0);
+  }
+  function showSection(id){
+    document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
+    $(id).classList.remove('hidden');
+    $('menu').style.display='none';
+  }
+  async function logout(){
+    try{ await fetch('/api/auth/logout', { method:'POST', credentials:'include' }); }catch{}
+    location.href = '/login.html';
+  }
+
+  /* ---------- Cart badge ---------- */
+  function renderCartBadge(n){
+    const b = $('cartBadge'); if(!b) return;
+    const num = Math.max(0, Number(n)||0);
+    if(num>0){ b.textContent = num > 99 ? '99+' : String(num); b.style.display='grid'; }
+    else { b.style.display='none'; }
+  }
+  async function updateCartBadge(){
+    try{
+      const r = await fetch('/api/user/cart', { credentials:'include', cache:'no-store' });
+      const d = await r.json();
+      // รวม "จำนวนชิ้นทั้งหมด" (ไม่ใช่จำนวนรายการ)
+      const totalQty = (d.items||[]).reduce((s,it)=> s + Number(it.qty||0), 0);
+      renderCartBadge(totalQty);
+    }catch{}
+  }
+
+  /* ---------- Catalog ---------- */
+  async function loadBrands(){
+    try{
+      const r = await fetch('/api/catalog/brands');
+      const list = await r.json();
+      $('brand').innerHTML = '<option value="">— แบรนด์ —</option>' +
+        list.map(b=>`<option value="${b.id}">${b.brand_name}</option>`).join('');
+    }catch(err){ console.error(err); }
+  }
+
+  async function loadProducts(){
+    setSkeletonCards(8);
+    const params = new URLSearchParams();
+    const brand = $('brand').value;
+    const type  = $('type').value;
+    const isNew = $('is_new').value;
+    const q     = $('q').value.trim();
+    if(brand) params.set('brand_id', brand);
+    if(type)  params.set('type', type);
+    if(isNew) params.set('is_new', isNew);
+    if(q)     params.set('q', q);
+
+    try{
+      const r = await fetch('/api/catalog/products?' + params.toString());
+      const rows = await r.json();
+      out.textContent = JSON.stringify(rows,null,2);
+
+      const list = $('list'), empty=$('empty');
+      if(!rows.length){ list.innerHTML=''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+
+      list.innerHTML = rows.map(p=>{
+        const stockOk   = Number(p.stock) > 0;
+        const stockLbl  = stockOk ? `คงเหลือ: ${p.stock}` : 'สินค้าหมด';
+        const stockCls  = stockOk ? 'pill ok' : 'pill danger';
+        const price     = fmtBaht(p.price) + ' บาท';
+        const img       = p.image_url || '/uploads/noimg.png';
+        const newTag    = p.is_new ? `<span class="ribbon">ใหม่</span>` : '';
+        const disable   = stockOk ? '' : 'disabled';
+        return `
+          <div class="card">
+            <div class="thumb-wrap">
+              ${newTag}
+              <img class="thumb" src="${img}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/uploads/noimg.png'">
+            </div>
+            <div class="title">${p.name || '-'}</div>
+            <div class="muted">${p.brand_name || '-'} • รุ่น ${p.model || '-'}</div>
+            <div class="row" style="justify-content:space-between;align-items:center;margin-top:8px">
+              <span style="font-weight:800">${price}</span>
+              <span class="${stockCls}">${stockLbl}</span>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <button class="btn ghost" onclick="openDetail(${p.id})">ดูรายละเอียด</button>
+              <button class="btn primary" ${disable} onclick="addToCart(${p.id})">หยิบใส่ตะกร้า</button>
+            </div>
+          </div>`;
+      }).join('');
+    }catch(err){
+      console.error(err);
+      $('list').innerHTML='';
+      $('empty').classList.remove('hidden');
+    }
+  }
+  function openDetail(id){ location.href = `/user/product.html?id=${id}`; }
+
+  async function addToCart(pid){
+    try{
+      const r = await fetch('/api/user/cart/add', {
+        method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+        body: JSON.stringify({ product_id: pid, qty: 1 })
+      });
+      const data = await r.json();
+      out.textContent = JSON.stringify(data,null,2);
+      if(r.status===200){
+        toast('เพิ่มลงตะกร้าแล้ว');
+        // ใช้ items_count จาก API ถ้ามี (เป็นผลรวม qty ทั้งตะกร้า)
+        if(typeof data.items_count !== 'undefined') renderCartBadge(Number(data.items_count||0));
+        else updateCartBadge();
+      }else{
+        if(r.status===401){ location.href='/login.html'; return; }
+        toast(data.message || 'เพิ่มลงตะกร้าไม่สำเร็จ');
+      }
+    }catch(err){ toast('เครือข่ายมีปัญหา ลองใหม่อีกครั้ง'); }
+  }
+
+  /* ---------- Orders ---------- */
+  function statusClass(s){
+    if(!s) return 'pill';
+    const t = String(s).toLowerCase();
+    if(t.includes('paid')||t.includes('ชำระ')) return 'pill ok';
+    if(t.includes('ship')||t.includes('ส่ง')) return 'pill';
+    if(t.includes('cancel')||t.includes('ยกเลิก')) return 'pill danger';
+    if(t.includes('pending')||t.includes('รอ')) return 'pill warn';
+    return 'pill';
+  }
+  async function loadOrders(){
+    try{
+      const r = await fetch('/api/user/orders', { credentials:'include' });
+      if (r.status === 401) { location.href='/login.html'; return; }
+      const rows = await r.json();
+      const tb = $('tblOrders').querySelector('tbody');
+      tb.innerHTML = rows.map(o => `
+        <tr>
+          <td>#${o.id}</td>
+          <td>${new Date(o.created_at).toLocaleString('th-TH')}</td>
+          <td><span class="${statusClass(o.status)}">${o.status}</span></td>
+          <td>${o.items_count}</td>
+          <td>${fmtBaht(o.total)}</td>
+          <td>${o.tracking_no || '-'}</td>
+          <td><a class="btn ghost" href="/user/order-detail.html?id=${o.id}">ดู</a></td>
+        </tr>
+      `).join('');
+      out.textContent = JSON.stringify(rows,null,2);
+    }catch(err){ console.error(err); }
+  }
+
+  /* ---------- init ---------- */
+  showSection('sec-products');
+  loadBrands();
+  loadProducts();
+  updateCartBadge();
+</script>
+</body>
+</html>

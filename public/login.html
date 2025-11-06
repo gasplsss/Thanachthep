@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>เข้าสู่ระบบ • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{--bg:#f7f7f8;--card:#fff;--line:#eaeaea;--text:#111827;--muted:#6b7280;--accent:#2563eb;--danger:#ef4444}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+    header{padding:14px 18px;border-bottom:1px solid #f0f0f0;background:#f7f6f6}
+    header b{color:#574b90;letter-spacing:.5px}
+    main{max-width:820px;margin:28px auto;padding:0 16px}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px}
+    h1{font-size:28px;text-align:center;margin:0 0 20px}
+    .row{display:grid;grid-template-columns:140px 1fr;gap:16px;align-items:center;margin:14px 0}
+    label{font-size:18px}
+    input[type="email"],input[type="password"]{
+      width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#eee;
+      font-size:18px;outline:0;
+    }
+    .actions{display:flex;gap:14px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+    .btn{appearance:none;border:0;border-radius:12px;padding:12px 18px;cursor:pointer;font-weight:700}
+    .btn.primary{background:var(--accent);color:#fff}
+    .btn.ghost{background:#eee;color:#111827}
+    .under{display:flex;justify-content:center;gap:18px;margin-top:16px}
+    .under a{color:#111827;text-decoration:underline;font-weight:600}
+    .remember{display:flex;align-items:center;gap:8px;margin:4px 0 0 156px;color:#374151}
+    .error{background:#fee2e2;border:1px solid #fecaca;color:#7f1d1d;padding:10px 12px;border-radius:10px;margin-top:12px;display:none}
+    .foot-logo{display:block;margin:24px auto 0;opacity:.6;width:80px}
+    @media (max-width:640px){
+      .row{grid-template-columns:1fr;gap:8px}
+      .remember{margin-left:0}
+    }
+  </style>
+</head>
+<body>
+  <header><b>LOOK UP</b></header>
+
+  <main>
+    <h1>เข้าสู่ระบบสมาชิก</h1>
+    <div class="panel">
+      <div class="row">
+        <label for="email">อีเมล์</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+
+      <div class="row">
+        <label for="password">รหัสผ่าน</label>
+        <input id="password" type="password" placeholder="••••••" autocomplete="current-password" />
+      </div>
+
+      <!-- ✅ ช่องติ๊กจำรหัสผ่าน (จริง ๆ ผมจำเฉพาะอีเมลเพื่อความปลอดภัย) -->
+      <div class="remember">
+        <input id="remember" type="checkbox" />
+        <label for="remember" style="user-select:none">จดจำรหัสผ่าน</label>
+      </div>
+
+      <div id="errBox" class="error"></div>
+
+      <div class="actions">
+        <a class="btn ghost" href="/register.html">สมัครสมาชิก</a>
+        <button class="btn primary" id="loginBtn">เข้าสู่ระบบ</button>
+      </div>
+
+      <div style="text-align:center;margin-top:12px">
+  <a href="/shop.html">เข้าชมเว็บไซต์</a>
+  &nbsp;|&nbsp;
+  <a href="/forgot.html">ลืมรหัสผ่าน?</a>
+</div>
+
+    <img class="foot-logo" src="/uploads/logo.png" alt="" onerror="this.style.display='none'">
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const errBox = $('errBox');
+
+    // เติมอีเมลที่จำไว้
+    (function initRemember(){
+      const savedEmail = localStorage.getItem('remember_email');
+      if (savedEmail) { $('email').value = savedEmail; $('remember').checked = true; }
+    })();
+
+    function showError(msg){
+      errBox.textContent = msg || 'เกิดข้อผิดพลาด';
+      errBox.style.display = 'block';
+    }
+    function hideError(){ errBox.style.display = 'none'; }
+
+    async function login(){
+      hideError();
+      const email = $('email').value.trim();
+      const password = $('password').value;
+
+      if(!email || !password){
+        showError('กรุณากรอกอีเมลและรหัสผ่าน');
+        return;
+      }
+
+      try{
+        const r = await fetch('/api/auth/login', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          credentials:'include',
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await r.json();
+
+        if(!r.ok){
+          showError(data.message || 'เข้าสู่ระบบไม่สำเร็จ');
+          return;
+        }
+
+        // จำอีเมลตามที่ติ๊กไว้ (ไม่เก็บรหัสผ่านเพื่อความปลอดภัย)
+        if ($('remember').checked) localStorage.setItem('remember_email', email);
+        else localStorage.removeItem('remember_email');
+
+        // redirect ตาม role
+        const roleId = data.user?.role_id || data.role_id; // เผื่อกรณี response รูปแบบต่างกัน
+        if (roleId === 1) {
+          location.href = '/admin.html';        // แอดมิน
+        } else {
+          location.href = '/user/user.html';    // สมาชิกทั่วไป
+        }
+      }catch(err){
+        console.error(err);
+        showError('ไม่สามารถติดต่อเซิร์ฟเวอร์ได้');
+      }
+    }
+
+    $('loginBtn').addEventListener('click', login);
+    // กด Enter เพื่อเข้าสู่ระบบ
+    ['email','password'].forEach(id => {
+      $(id).addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>ชำระเงิน • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* ========= THEME ========= */
+    :root{
+      --bg:#f6f7fb;--card:#fff;--line:#e7e9ef;--text:#0f172a;--muted:#64748b;
+      --accent:#2563eb;--danger:#ef4444;--success:#16a34a;--warn:#f59e0b;
+      --radius:14px;--radius-sm:10px;--shadow:0 2px 8px rgba(15,23,42,.06),0 12px 24px rgba(15,23,42,.06);
+      --focus:0 0 0 3px rgba(37,99,235,.25)
+    }
+    @media (prefers-color-scheme: dark){
+      :root{--bg:#0b1020;--card:#0f1528;--line:#20263a;--text:#e5e7eb;--muted:#94a3b8;--shadow:0 2px 12px rgba(0,0,0,.5),0 20px 40px rgba(0,0,0,.35)}
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+
+    /* ========= HEADER ========= */
+    header{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);backdrop-filter:blur(8px);background:color-mix(in oklab,var(--card) 92%, transparent)}
+    header .sp{flex:1}
+    a.btn,button.btn{appearance:none;border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 14px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block;transition:.18s ease;box-shadow:var(--shadow);background:#fff;color:var(--text)}
+    .btn.primary{border-color:transparent;background:var(--accent);color:#fff}
+    .btn:focus-visible{outline:none;box-shadow:var(--focus),var(--shadow)}
+
+    main{max-width:980px;margin:14px auto;padding:0 14px 80px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+    .muted{color:var(--muted)}
+
+    /* ========= ORDER BOX ========= */
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-weight:800;font-size:12px}
+    .pill.ok{background:#eaf9ef;border-color:#bbf7d0;color:#065f46}
+    .pill.warn{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+    .pill.bad{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    thead th{font-size:12px;color:var(--muted);font-weight:800;padding:0 10px}
+    tbody tr{background:var(--card);box-shadow:var(--shadow)}
+    tbody td{padding:12px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:middle}
+    tbody tr td:first-child{border-left:1px solid var(--line);border-top-left-radius:12px;border-bottom-left-radius:12px}
+    tbody tr td:last-child{border-right:1px solid var(--line);border-top-right-radius:12px;border-bottom-right-radius:12px}
+
+    img.item{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+
+    /* ========= QR / UPLOAD ========= */
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (max-width:780px){.grid{grid-template-columns:1fr}}
+
+    .qr{width:240px;max-width:100%;height:auto;border:1px solid var(--line);border-radius:12px}
+
+    .drop{
+      border:1px dashed var(--line);border-radius:12px;padding:14px;
+      display:flex;gap:12px;align-items:center;justify-content:center;min-height:120px;
+      background:#fafbff; cursor:pointer; user-select:none;
+      outline:0;
+    }
+    .drop:hover{background:#f3f6ff}
+    .drop.drag{background:#eef2ff}
+    .drop:focus-visible{box-shadow:var(--focus)}
+    .preview{max-width:260px;max-height:260px;border-radius:12px;border:1px solid var(--line)}
+
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+
+    /* ========= TOAST ========= */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:grid;gap:10px;z-index:50}
+    .toast{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);padding:12px 14px;border-radius:12px;font-weight:700}
+
+    /* ========= SKELETON ========= */
+    .sk{position:relative;overflow:hidden;background:color-mix(in oklab,#cfd7e7 20%, #fff);border-radius:10px}
+    .sk::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-100%);animation:sh 1.2s infinite}
+    @keyframes sh{to{transform:translateX(100%)}}
+
+    /* ========= MODAL (THANK YOU) ========= */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;place-items:center;z-index:100}
+    .modal{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);width:min(520px,92vw);padding:18px;text-align:center}
+    .modal h3{margin:0 0 6px}
+    .modal p{margin:4px 0 14px}
+    .modal .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+<header>
+  <button class="btn" onclick="goCart()">⬅️ กลับไปตะกร้า</button>
+  <div class="sp"></div>
+  <b>ยืนยันการชำระเงิน</b>
+  <div class="sp"></div>
+  <a class="btn" href="/user/orders.html">ดูคำสั่งซื้อของฉัน</a>
+</header>
+
+<main>
+  <div id="orderBox" class="card">
+    <div class="sk" style="height:18px;width:40%"></div>
+    <div class="sk" style="height:12px;width:30%;margin-top:8px"></div>
+    <div class="sk" style="height:120px;width:100%;margin-top:12px;border-radius:12px"></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin:0 0 10px">ชำระเงินผ่าน QR</h3>
+      <img id="qrImg" class="qr" src="/uploads/QRcode-p.jpg" alt="QR สำหรับชำระเงิน">
+      <div class="row" style="margin-top:10px">
+        <a id="saveBtn" class="btn" download="lookup_qr.png" href="/uploads/QRcode-p.jpg">บันทึกรูป QR</a>
+        <button class="btn" onclick="openQR()">เปิดรูปในแท็บใหม่</button>
+      </div>
+      <div class="muted" style="margin-top:6px">สแกนและโอนยอดรวมตามคำสั่งซื้อ แล้วแนบหลักฐานด้านขวา</div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px">แนบหลักฐานการโอน</h3>
+
+      <!-- พื้นที่คลิกทั้งกรอบเพื่อเปิดไฟล์ -->
+      <div id="drop"
+           class="drop"
+           role="button"
+           tabindex="0"
+           aria-label="คลิกเพื่อเลือกไฟล์ หรือ ลากรูปมาวาง"
+           ondragover="evDrag(event,true)"
+           ondragleave="evDrag(event,false)"
+           ondrop="evDrop(event)">
+        <div>
+          <div style="font-weight:800">ลากรูปมาวางที่นี่ หรือคลิกที่กรอบเพื่อเลือกไฟล์</div>
+          <div class="muted" style="margin-top:6px">รองรับ JPG/PNG ขนาด ≤ 8MB</div>
+        </div>
+
+        <!-- input ที่ซ่อนไว้ -->
+        <input id="slip" type="file" accept="image/*" style="display:none" onchange="pickFile(this.files[0])">
+      </div>
+
+      <div id="previewWrap" class="row" style="margin-top:10px;display:none">
+        <img id="preview" class="preview" alt="ตัวอย่างสลิป">
+        <button class="btn" type="button" onclick="document.getElementById('slip').click()">เลือกไฟล์อื่น</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="uploadBtn" class="btn primary" onclick="uploadSlip()">อัปโหลดและยืนยันการชำระเงิน</button>
+      </div>
+      <div class="muted" style="margin-top:6px">* หลังอัปโหลด สถานะจะเป็น <b>pending</b> จนกว่าแอดมินจะตรวจสอบ</div>
+    </div>
+  </div>
+</main>
+
+<!-- THANK YOU MODAL -->
+<div id="doneModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="doneTitle" aria-describedby="doneDesc">
+  <div class="modal">
+    <h3 id="doneTitle">ขอบคุณสำหรับรายการสั่งซื้อ 🎉</h3>
+    <p id="doneDesc" class="muted">เราได้รับหลักฐานการชำระเงินของคำสั่งซื้อ <b id="doneOrderId">#-</b> แล้ว<br>สถานะถูกตั้งเป็น <b>pending</b> กรุณารอการตรวจสอบจากแอดมิน 🙏</p>
+    <div class="actions">
+      <button class="btn" onclick="goHome()">🏠 ไปหน้าแรก</button>
+      <a id="goOrders" class="btn primary" href="/user/orders.html">📦 ไปหน้า “คำสั่งซื้อ”</a>
+    </div>
+  </div>
+</div>
+
+<div id="toasts" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+  const $ = s => document.querySelector(s);
+  const orderId = new URLSearchParams(location.search).get('id') || localStorage.getItem('last_order_id');
+  if(!orderId){ alert('ไม่พบรหัสคำสั่งซื้อ'); location.href='/user/orders.html'; }
+
+  const fmt = n => (Number(n)||0).toLocaleString('th-TH');
+  const toast = (m)=>{ const w=$('#toasts'); const t=document.createElement('div'); t.className='toast'; t.textContent=m; w.appendChild(t); setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),260)}, 2200); };
+  function goCart(){ location.href='/user/cart.html'; }
+  function openQR(){ window.open($('#qrImg').src, '_blank'); }
+  function goHome(){ location.href='/user/user.html'; }
+
+  function pillClass(s){ s = String(s||'').toLowerCase();
+    if(s.includes('paid')||s.includes('ชำระ')) return 'pill ok';
+    if(s.includes('pending')||s.includes('รอ')) return 'pill warn';
+    if(s.includes('cancel')) return 'pill bad';
+    return 'pill';
+  }
+
+  // Modal helpers
+  function openDoneModal(){
+    document.getElementById('doneOrderId').textContent = '#'+orderId;
+    const m = document.getElementById('doneModal');
+    m.style.display = 'grid';
+    document.body.style.overflow = 'hidden';
+    // focus primary action
+    setTimeout(()=> document.getElementById('goOrders').focus(), 0);
+  }
+  function closeDoneModal(){
+    const m = document.getElementById('doneModal');
+    m.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  // Close on ESC / click backdrop
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeDoneModal(); });
+  document.getElementById('doneModal').addEventListener('click', (e)=>{ if(e.target.id==='doneModal') closeDoneModal(); });
+
+  // debug no-op
+  function setOut(){}
+
+  async function loadOrder(){
+    try{
+      const r = await fetch('/api/user/orders/'+orderId, { credentials:'include' });
+      if(r.status===401){ location.href='/login.html'; return; }
+      const d = await r.json();
+      if(!r.ok){ alert(d.message || 'ไม่พบคำสั่งซื้อ'); location.href='/user/orders.html'; return; }
+      setOut(d);
+
+      const itemsHtml = (d.items||[]).map(it=>`
+        <tr>
+          <td style="width:70px"><img src="${it.image_url||'/uploads/noimg.png'}" class="item" alt=""></td>
+          <td>${it.name||'-'} <span class="muted">รุ่น ${it.model||'-'}</span></td>
+          <td>${fmt(it.qty)}</td>
+          <td>${fmt(it.price)}</td>
+          <td>${fmt(it.qty*it.price)}</td>
+        </tr>
+      `).join('');
+
+      $('#orderBox').innerHTML = `
+        <div><b>คำสั่งซื้อ #${d.order.id}</b> | สถานะ: <span class="${pillClass(d.order.status)}">${d.order.status}</span></div>
+        <div class="muted">วันที่: ${new Date(d.order.created_at).toLocaleString('th-TH')}</div>
+        <table style="margin-top:10px">
+          <thead><tr><th></th><th>สินค้า</th><th>จำนวน</th><th>ราคา</th><th>รวม</th></tr></thead>
+          <tbody>${itemsHtml}</tbody>
+          <tfoot><tr><td colspan="4" style="text-align:right"><b>รวมทั้งหมด</b></td><td>${fmt(d.order.total)}</td></tr></tfoot>
+        </table>
+        <div style="margin-top:10px">
+          <div><b>ที่อยู่จัดส่ง:</b> ${d.order.recipient_name||'-'} — ${d.order.ship_phone||'-'}</div>
+          <div class="muted">${d.order.ship_address||'-'} ${d.order.ship_subdistrict||''} ${d.order.ship_district||''} ${d.order.ship_province||''} ${d.order.ship_zipcode||''}</div>
+        </div>
+        ${d.payment && d.payment.payment_image ? `<div style="margin-top:10px"><b>หลักฐานล่าสุด:</b><br><img src="${d.payment.payment_image}" style="max-width:320px;border:1px solid var(--line);border-radius:8px"></div>` : ''}
+      `;
+    }catch(e){ console.error(e); alert('โหลดข้อมูลคำสั่งซื้อไม่สำเร็จ'); }
+  }
+
+  // ===== Upload slip =====
+  let pickedFile = null;
+
+  // ทำให้คลิกทั้งกรอบเปิด File Picker ได้
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const drop = document.getElementById('drop');
+    const file = document.getElementById('slip');
+
+    drop.addEventListener('click', (e)=>{
+      if (e.target.closest('a,button,label')) return;
+      file.click();
+    });
+
+    // รองรับคีย์บอร์ด
+    drop.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' '){
+        e.preventDefault();
+        file.click();
+      }
+    });
+  });
+
+  function evDrag(e, on){ e.preventDefault(); document.getElementById('drop').classList.toggle('drag', !!on); }
+  function evDrop(e){ e.preventDefault(); document.getElementById('drop').classList.remove('drag'); const f=e.dataTransfer.files?.[0]; if(f) pickFile(f); }
+
+  function pickFile(f){
+    if(!f) return;
+    if(!/^image\//.test(f.type))   return alert('ไฟล์ต้องเป็นรูปภาพ');
+    if(f.size>8*1024*1024)         return alert('ไฟล์ใหญ่เกิน 8MB');
+    pickedFile = f;
+    const url = URL.createObjectURL(f);
+    document.getElementById('preview').src = url;
+    document.getElementById('previewWrap').style.display='flex';
+  }
+
+  async function uploadSlip(){
+    const domFile = document.getElementById('slip').files[0];
+    if(!pickedFile && !domFile){ alert('กรุณาแนบรูปหลักฐาน'); return; }
+    const f = pickedFile || domFile;
+
+    const btn = document.getElementById('uploadBtn'); btn.disabled = true; btn.textContent = 'กำลังอัปโหลด…';
+    try{
+      const fd = new FormData(); fd.append('order_id', orderId); fd.append('payment_image', f);
+      const r = await fetch('/api/user/payments', { method:'POST', body:fd, credentials:'include' });
+      const d = await r.json(); setOut(d);
+      if(r.status===401){ location.href='/login.html'; return; }
+      if(r.ok){
+        toast('อัปโหลดสำเร็จ');
+        pickedFile=null; document.getElementById('slip').value=''; document.getElementById('previewWrap').style.display='none';
+        loadOrder();
+        // ✅ แสดงป๊อปอัปขอบคุณ
+        openDoneModal();
+      }else{
+        alert(d.message || 'อัปโหลดไม่สำเร็จ');
+      }
+    }catch(e){
+      console.error(e); alert('เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ');
+    }finally{
+      btn.disabled = false; btn.textContent = 'อัปโหลดและยืนยันการชำระเงิน';
+    }
+  }
+
+  loadOrder();
+</script>
+</body>
+</html>

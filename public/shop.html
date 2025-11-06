@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>LOOK UP • สินค้าทั้งหมด</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --line:#e6e8ee; --text:#0f172a; --muted:#64748b;
+      --accent:#2563eb; --accent-2:#1e40af; --ok:#10b981; --danger:#ef4444; --ring:#c7d2fe;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--text); background:linear-gradient(180deg,#f7f8ff 0%, #f6f7fb 100%)}
+
+    /* Header */
+    header{
+      position:sticky; top:0; z-index:20;
+      background:linear-gradient(90deg,#ffffff 0%, #f8faff 100%);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:saturate(150%) blur(6px);
+      padding:10px 14px; display:flex; align-items:center; gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px; cursor:pointer;
+    }
+    .brand .dot{width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 6px rgba(37,99,235,.12)}
+    header .sp{flex:1}
+    .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;transition:transform .05s ease, box-shadow .2s ease}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:var(--accent);color:#fff; box-shadow:0 8px 24px rgba(37,99,235,.18)}
+    .btn.primary:hover{background:var(--accent-2)}
+    .btn.ghost{background:#fff;border:1px solid var(--accent);color:var(--accent)}
+    a.btn{text-decoration:none; display:inline-block}
+
+    /* Filters (sticky toolbar) */
+    .toolbar-wrap{position:sticky; top:64px; z-index:15; background:linear-gradient(180deg,#ffffff 0,#ffffffE6 100%); border-bottom:1px solid var(--line)}
+    .toolbar{max-width:1200px; margin:0 auto; padding:10px 14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .chip{display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:8px 10px}
+    .chip input,.chip select{border:0; outline:0; min-width:160px; font:inherit}
+    .chip .icon{opacity:.7}
+    .chip:focus-within{box-shadow:0 0 0 4px var(--ring)}
+
+    /* Layout */
+    main{max-width:1200px; margin:14px auto; padding:12px 14px 64px}
+    .result-bar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:8px 2px 2px}
+    .muted{color:var(--muted); font-size:13px}
+
+    /* Grid & Cards */
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-top:10px}
+    .card{
+      position:relative; background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden;
+      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .card:hover{transform:translateY(-2px); border-color:#d6daf0; box-shadow:0 12px 30px rgba(16,24,40,.08)}
+    .thumb-wrap{position:relative}
+    .thumb{width:100%; aspect-ratio:1/1; object-fit:cover; background:#f8fafc}
+    .ribbon{
+      position:absolute; left:10px; top:10px; background:linear-gradient(90deg,#22c55e,#10b981);
+      color:#fff; font-size:11px; font-weight:800; padding:4px 8px; border-radius:999px; box-shadow:0 6px 16px rgba(16,185,129,.2)
+    }
+    .oos{
+      position:absolute; inset:0; background:rgba(255,255,255,.75); display:grid; place-items:center; font-weight:800; color:#0f172a;
+      backdrop-filter:blur(2px)
+    }
+    .pad{padding:12px}
+    .name{font-weight:800; line-height:1.25; margin:4px 0 2px; min-height:46px}
+    .meta{font-size:12px; color:var(--muted)}
+    .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .badge{background:#eef2ff; color:#1f2937; border:1px solid #e5e7ff; font-size:11px; border-radius:999px; padding:3px 8px}
+    .price{font-weight:900; font-size:18px; margin-top:8px}
+    .actions{display:flex; gap:8px; margin-top:10px}
+    .btn.small{padding:8px 10px; border-radius:10px; font-weight:700}
+    .btn.secondary{background:#fff; border:1px solid var(--line); color:#0f172a}
+    .btn.secondary:hover{border-color:#cbd5e1}
+    .btn.primary.small{box-shadow:none}
+
+    /* Empty */
+    .empty{
+      margin:18px 0; padding:16px; background:#fff; border:1px dashed var(--line); border-radius:14px; color:var(--muted);
+      display:flex; align-items:center; gap:10px
+    }
+
+    /* Skeletons */
+    .skeleton{border-radius:14px; overflow:hidden; border:1px solid var(--line); background:#fff}
+    .sk-thumb{width:100%; aspect-ratio:1/1; background:linear-gradient(90deg,#eef1f6, #f6f7fb, #eef1f6); background-size:200% 100%; animation:sh 1.2s infinite linear}
+    .sk-line{height:10px; margin:10px; border-radius:6px; background:linear-gradient(90deg,#eef1f6, #f6f7fb, #eef1f6); background-size:200% 100%; animation:sh 1.2s infinite linear}
+    @keyframes sh{0%{background-position:0 0}100%{background-position:-200% 0}}
+
+    /* Modal */
+    .modal{position:fixed; inset:0; background:rgba(2,6,23,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:50}
+    .panel{background:#fff; border-radius:16px; width:min(480px,96vw); border:1px solid var(--line); padding:16px; box-shadow:0 24px 60px rgba(0,0,0,.15)}
+    .panel h3{margin:0 0 6px}
+    .panel p{margin:0 0 12px}
+
+    /* Small screens tweaks */
+    @media (max-width:520px){
+      .brand span{display:none}
+      .chip input{min-width:120px}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand" onclick="location.href='/shop.html'">
+      <div class="dot"></div><span>LOOK UP</span>
+    </div>
+    <div class="sp"></div>
+    <a class="btn ghost" href="/login.html">เข้าสู่ระบบ</a>
+    <a class="btn primary" href="/register.html">สมัครสมาชิก</a>
+  </header>
+
+  <!-- Sticky filters -->
+  <div class="toolbar-wrap">
+    <div class="toolbar">
+      <div class="chip">
+        <span class="icon">🔎</span>
+        <input id="f_q" placeholder="ค้นหาชื่อสินค้า / รุ่น" onkeydown="if(event.key==='Enter') loadProducts()">
+      </div>
+
+      <div class="chip">
+        <span class="icon">🏷️</span>
+        <select id="f_brand">
+          <option value="">ทุกแบรนด์</option>
+        </select>
+      </div>
+
+      <div class="chip">
+        <span class="icon">🕶️</span>
+        <select id="f_type">
+          <option value="">ทุกประเภท</option>
+          <option value="Eyeglasses">Eyeglasses (กรอบแว่นตา)</option>
+          <option value="Sunglasses">Sunglasses (กันแดด)</option>
+          <option value="Filter">กรองแสง</option>
+        </select>
+      </div>
+
+      <div class="chip">
+        <span class="icon">✨</span>
+        <select id="f_new">
+          <option value="">ทั้งหมด</option>
+          <option value="1">สินค้าใหม่</option>
+        </select>
+      </div>
+
+      <div class="chip">
+        <span class="icon">↕️</span>
+        <select id="f_sort">
+          <option value="">เรียงตามล่าสุด</option>
+          <option value="price_asc">ราคาน้อย→มาก</option>
+          <option value="price_desc">ราคามาก→น้อย</option>
+        </select>
+      </div>
+
+      <button class="btn secondary" onclick="resetFilters()">ล้างตัวกรอง</button>
+      <button class="btn primary" onclick="loadProducts()">ค้นหา</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <main>
+    <div class="result-bar">
+      <div id="count" class="muted">กำลังโหลด…</div>
+      <div id="tip" class="muted"></div>
+    </div>
+
+    <div id="grid" class="grid"></div>
+
+    <div id="empty" class="empty" style="display:none">
+      🗂️ ไม่พบสินค้า ลองเปลี่ยนเงื่อนไขการค้นหาหรือรีเซ็ตตัวกรองอีกครั้ง
+    </div>
+  </main>
+
+  <!-- Login required modal -->
+  <div id="loginModal" class="modal" role="dialog" aria-modal="true">
+    <div class="panel">
+      <h3>เข้าสู่ระบบก่อนทำรายการ</h3>
+      <p class="muted">กรุณาเข้าสู่ระบบหรือสมัครสมาชิกเพื่อหยิบสินค้าใส่ตะกร้าหรือสั่งซื้อ</p>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+        <a class="btn ghost" href="/login.html">เข้าสู่ระบบ</a>
+        <a class="btn primary" href="/register.html">สมัครสมาชิก</a>
+        <button class="btn secondary" onclick="hideModal()">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+
+    /* ---------- Helpers ---------- */
+    function renderSkeleton(n=8){
+      $('#grid').innerHTML = Array.from({length:n}).map(()=>`
+        <div class="skeleton">
+          <div class="sk-thumb"></div>
+          <div class="sk-line" style="height:12px;width:70%"></div>
+          <div class="sk-line" style="height:10px;width:50%"></div>
+          <div class="sk-line" style="height:10px;width:60%"></div>
+        </div>
+      `).join('');
+      $('#count').textContent = 'กำลังโหลด…';
+      $('#empty').style.display = 'none';
+    }
+
+    function resetFilters(){
+      $('#f_q').value = '';
+      $('#f_brand').value = '';
+      $('#f_type').value = '';
+      $('#f_new').value = '';
+      $('#f_sort').value = '';
+      loadProducts();
+    }
+
+    function formatBaht(n){ return Number(n||0).toLocaleString('th-TH'); }
+
+    /* ---------- Modal ---------- */
+    function showModal(){ $('#loginModal').style.display='flex'; }
+    function hideModal(){ $('#loginModal').style.display='none'; }
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideModal(); });
+    $('#loginModal').addEventListener('click', (e)=>{ if(e.target.id==='loginModal') hideModal(); });
+
+    /* ---------- Data ---------- */
+    async function loadBrands(){
+      try{
+        const r = await fetch('/api/catalog/brands');
+        const list = await r.json();
+        $('#f_brand').innerHTML = '<option value="">ทุกแบรนด์</option>' +
+          list.map(b=>`<option value="${b.id}">${b.brand_name}</option>`).join('');
+      }catch(e){ /* เงียบ ๆ พอ */ }
+    }
+
+    async function loadProducts(){
+      renderSkeleton();
+
+      const qs = new URLSearchParams();
+      const q = $('#f_q').value.trim();
+      const brand = $('#f_brand').value;
+      const type  = $('#f_type').value;
+      const isNew = $('#f_new').value;
+      if (q) qs.set('q', q);
+      if (brand) qs.set('brand_id', brand);
+      if (type)  qs.set('type', type);
+      if (isNew) qs.set('is_new', isNew);
+
+      const r = await fetch('/api/catalog/products' + (qs.toString()?`?${qs}`:''));
+      let rows = await r.json();
+
+      // client-side sort
+      const sort = $('#f_sort').value;
+      if (sort === 'price_asc')  rows.sort((a,b)=>Number(a.price)-Number(b.price));
+      if (sort === 'price_desc') rows.sort((a,b)=>Number(b.price)-Number(a.price));
+
+      $('#count').textContent = rows.length ? `พบสินค้า ${rows.length.toLocaleString()} รายการ` : 'ไม่พบสินค้า';
+      $('#tip').textContent = q ? `คำค้นหา: “${q}”` : '';
+
+      if(!rows.length){
+        $('#grid').innerHTML = '';
+        $('#empty').style.display = 'flex';
+        return;
+      }
+      $('#empty').style.display = 'none';
+
+      $('#grid').innerHTML = rows.map(p=>{
+        const isOOS = Number(p.stock) <= 0;
+        return `
+          <div class="card">
+            <div class="thumb-wrap">
+              <img class="thumb" src="${p.image_url || '/uploads/noimg.png'}" alt="">
+              ${p.is_new ? `<div class="ribbon">ใหม่</div>` : ''}
+              ${isOOS ? `<div class="oos">สินค้าหมด</div>` : ''}
+            </div>
+            <div class="pad">
+              <div class="name">${p.name || '-'}</div>
+              <div class="meta">${p.brand_name || '-'} • รุ่น ${p.model || '-'}</div>
+              <div class="row" style="margin-top:6px">
+                ${p.glasses_type ? `<span class="badge">${p.glasses_type}</span>` : ''}
+                <span class="badge">สต๊อก: ${p.stock ?? 0}</span>
+              </div>
+              <div class="price">${formatBaht(p.price)} บาท</div>
+              <div class="actions">
+                <a class="btn secondary small" href="/product.html?id=${p.id}">ดูรายละเอียด</a>
+                <button class="btn primary small" ${isOOS?'disabled':''} onclick="showModal()">
+                  ${isOOS ? 'หมด' : 'หยิบใส่ตะกร้า'}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* ---------- Init ---------- */
+    loadBrands();
+    loadProducts();
+  </script>
+</body>
+</html>

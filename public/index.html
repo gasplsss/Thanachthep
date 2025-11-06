@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LOOK UP • ร้านแว่นตาออนไลน์</title>
+  <style>
+    :root {
+      --bg: #f7f7f8; --card:#fff; --line:#e5e7eb;
+      --brand:#111827; --accent:#2563eb; --muted:#6b7280;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial;
+      background: var(--bg); color: var(--brand);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:100vh;
+    }
+    h1 { font-size:2.2rem; margin-bottom:0.25em; }
+    p { color:var(--muted); margin:0.2em 0 1.2em; }
+    .btn {
+      display:inline-block; padding:10px 18px; margin:6px;
+      border-radius:8px; border:none; cursor:pointer;
+      font-weight:600; font-size:15px; text-decoration:none;
+      background:var(--accent); color:#fff;
+    }
+    .btn.outline {
+      background:#fff; color:var(--accent); border:2px solid var(--accent);
+    }
+    footer { position:fixed; bottom:10px; color:var(--muted); font-size:12px; }
+  </style>
+</head>
+<body>
+  <h1>LOOK UP</h1>
+  <p>ค้นหาแว่นตาที่ใช่สำหรับคุณ</p>
+
+  <div>
+    <a href="/login.html" class="btn">เข้าสู่ระบบ</a>
+    <a href="/register.html" class="btn outline">สมัครสมาชิก</a>
+  </div>
+
+  <footer>© 2025 LOOK UP</footer>
+</body>
+</html>

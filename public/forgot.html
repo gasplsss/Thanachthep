@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ลืมรหัสผ่าน • LOOK UP</title>
+  <style>
+    :root{--bg:#f7f7f8;--card:#fff;--line:#e5e7eb;--text:#111827;--muted:#6b7280;--accent:#2563eb;--danger:#ef4444}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+    header{padding:14px 16px;border-bottom:1px solid var(--line);background:#fff}
+    main{max-width:480px;margin:24px auto;padding:0 16px 40px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+    label{display:block;margin:8px 0 6px;color:#374151;font-weight:600}
+    input,button{font:inherit}
+    input{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    .actions{display:flex;gap:10px;justify-content:space-between;margin-top:16px}
+    .btn{appearance:none;border:0;border-radius:10px;padding:12px 14px;font-weight:700;cursor:pointer}
+    .btn.primary{background:var(--accent);color:#fff}
+    .btn.ghost{background:#fff;border:1px solid var(--accent);color:var(--accent)}
+    .muted{color:var(--muted);font-size:12px}
+    .error{color:#fff;background:var(--danger);padding:8px 10px;border-radius:10px;margin-top:10px;display:none}
+    .ok{color:#065f46;background:#d1fae5;padding:8px 10px;border-radius:10px;margin-top:10px;display:none}
+  </style>
+</head>
+<body>
+  <header><b>LOOK UP</b></header>
+  <main>
+    <div class="card">
+      <h2 style="margin:0 0 8px">ลืมรหัสผ่าน</h2>
+      <p class="muted" style="margin:0 0 12px">กรอกอีเมลที่ลงทะเบียนไว้ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้</p>
+      <form id="forgotForm">
+        <label for="email">อีเมล</label>
+        <input id="email" type="email" placeholder="name@example.com" required />
+        <div id="err" class="error"></div>
+        <div id="ok" class="ok"></div>
+        <div class="actions">
+          <button id="btnSubmit" class="btn primary" type="submit">ส่งลิงก์รีเซ็ต</button>
+          <a class="btn ghost" href="/login.html">กลับสู่หน้าล็อกอิน</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+  function showErr(msg){
+    const box = document.getElementById('err');
+    box.textContent = msg || '';
+    box.style.display = msg ? 'block' : 'none';
+  }
+  function showOk(msg){
+    const box = document.getElementById('ok');
+    box.textContent = msg || '';
+    box.style.display = msg ? 'block' : 'none';
+  }
+  document.getElementById('forgotForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    showErr(''); showOk('');
+    const btn = document.getElementById('btnSubmit');
+    const email = document.getElementById('email').value.trim();
+    if(!/^\S+@\S+\.\S+$/.test(email)){ showErr('รูปแบบอีเมลไม่ถูกต้อง'); return; }
+    btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+    const r = await fetch('/api/auth/forgot', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const d = await r.json();
+    if(!r.ok){ showErr(d.message || 'เกิดข้อผิดพลาด โปรดลองใหม่อีกครั้ง'); btn.disabled = false; btn.textContent = 'ส่งลิงก์รีเซ็ต'; return; }
+
+    if(d.token){
+      location.href = `/reset.html?token=${d.token}`;
+    }else{
+      showOk('หากอีเมลมีอยู่ในระบบ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านให้แล้ว');
+      btn.disabled = false; btn.textContent = 'ส่งลิงก์รีเซ็ต';
+    }
+  });
+  </script>
+</body>
+</html>
+

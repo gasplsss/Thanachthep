@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>รายละเอียดคำสั่งซื้อ • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#f7f7f8;--card:#ffffff;--line:#e9e9ee;--text:#111827;--muted:#6b7280;
+      --accent:#2563eb;--ok:#16a34a;--warn:#f59e0b;--danger:#ef4444;
+      --radius:14px;--radius-sm:10px;
+      --shadow:0 2px 8px rgba(15,23,42,.06),0 12px 24px rgba(15,23,42,.06);
+      --focus:0 0 0 3px rgba(37,99,235,.25)
+    }
+    @media (prefers-color-scheme: dark){
+      :root{--bg:#0b1020;--card:#0f1528;--line:#20263a;--text:#e5e7eb;--muted:#94a3b8;
+        --shadow:0 2px 12px rgba(0,0,0,.5),0 20px 40px rgba(0,0,0,.35)}
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+    header{position:sticky;top:0;backdrop-filter:blur(8px);background:color-mix(in oklab,var(--card) 92%, transparent);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:10px;z-index:5}
+    header .sp{flex:1}
+    a.btn,button.btn{appearance:none;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.18s ease;box-shadow:var(--shadow);background:#fff;color:var(--text)}
+    .btn.primary{border-color:transparent;background:var(--accent);color:#fff}
+    .btn.ghost{background:#fff;border:1px solid var(--accent);color:var(--accent)}
+    .btn.danger{background:var(--danger);border-color:transparent;color:#fff}
+    .btn:focus-visible{outline:none;box-shadow:var(--focus),var(--shadow)}
+    main{max-width:1100px;margin:14px auto;padding:0 14px 70px}
+    .grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+    .muted{color:var(--muted);font-size:12px}
+    /* สินค้า */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    thead th{font-size:12px;color:var(--muted);font-weight:800;padding:0 10px}
+    tbody tr{background:var(--card);box-shadow:var(--shadow)}
+    tbody td, tfoot td{padding:12px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top}
+    tbody tr td:first-child{border-left:1px solid var(--line);border-top-left-radius:12px;border-bottom-left-radius:12px}
+    tbody tr td:last-child{border-right:1px solid var(--line);border-top-right-radius:12px;border-bottom-right-radius:12px}
+    tfoot td{background:var(--card);border:1px solid var(--line);border-radius:12px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    img.thumb{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+    img.slip{width:260px;max-width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
+    label{display:block;margin:8px 0 6px;font-weight:700;color:var(--muted)}
+    input[type=file]{padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    /* Pill */
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#eef2ff;color:#1f2937;font-size:12px;font-weight:800;border:1px solid color-mix(in oklab,var(--accent) 20%, var(--line))}
+    .pill.ok{background:#eaf9ef;border-color:#bbf7d0;color:#065f46}
+    .pill.warn{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+    .pill.danger{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+    /* Steps (สถานะออเดอร์) */
+    .steps{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 0}
+    .step{display:flex;align-items:center;gap:8px}
+    .dot{width:12px;height:12px;border-radius:999px;background:#d1d5db;border:1px solid var(--line)}
+    .step.active .dot{background:var(--accent);border-color:var(--accent)}
+    .step.done .dot{background:var(--ok);border-color:var(--ok)}
+    .sep{width:26px;height:2px;background:var(--line);border-radius:999px}
+    .step span{font-size:12px;color:var(--muted);font-weight:800}
+    .step.active span{color:var(--accent)}
+    .step.done span{color:var(--ok)}
+    /* Skeleton */
+    .sk{position:relative;overflow:hidden;background:color-mix(in oklab,#cfd7e7 20%, #fff);border-radius:12px;min-height:18px}
+    .sk::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-100%);animation:sh 1.2s infinite}
+    @keyframes sh{to{transform:translateX(100%)}}
+    /* Toast */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:grid;gap:10px;z-index:50}
+    .toast{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);padding:12px 14px;border-radius:12px;font-weight:700}
+    /* Badge */
+    .badge{display:inline-flex;align-items:center;gap:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <b>รายละเอียดคำสั่งซื้อ</b>
+    <div class="sp"></div>
+    <a class="btn" href="/" title="ไปหน้าแรก">🏠 หน้าแรก</a>
+    <a class="btn ghost" href="/user/orders.html">⬅️ กลับไปคำสั่งซื้อ</a>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- ซ้าย: หัวออเดอร์ + รายการสินค้า + ที่อยู่ -->
+      <section class="card" id="head">
+        <div class="sk" style="height:18px;width:40%"></div>
+        <div class="sk" style="height:12px;width:30%;margin-top:6px"></div>
+      </section>
+
+      <section class="card" id="payCard">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h3 style="margin:0">การชำระเงิน</h3>
+          <span id="payBadge" class="badge muted">สถานะ: —</span>
+        </div>
+
+        <div id="payBox" class="row" style="align-items:flex-start;margin-top:8px">
+          <div class="muted">— ยังไม่มีหลักฐานการชำระเงิน —</div>
+        </div>
+
+        <div style="margin-top:12px">
+          <label>อัปโหลด/อัปเดตหลักฐานการโอนเงิน (JPG/PNG)</label>
+          <input id="slip" type="file" accept="image/*" onchange="previewSlip(this.files[0])">
+          <div id="previewWrap" class="row" style="margin-top:8px;display:none">
+            <img id="preview" class="slip" alt="ตัวอย่างสลิปที่เลือก">
+            <button class="btn" type="button" onclick="document.getElementById('slip').value='';document.getElementById('previewWrap').style.display='none'">ล้างไฟล์</button>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button id="uploadBtn" class="btn primary" onclick="uploadSlip()">อัปโหลด</button>
+          </div>
+          <div class="muted" style="margin-top:6px">* หลังอัปโหลด สถานะจะเป็น <b>pending</b> จนกว่าแอดมินจะตรวจสอบ</div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:12px">
+      <h3 style="margin:0 0 8px">สินค้า</h3>
+      <table id="tblItems">
+        <thead><tr><th>สินค้า</th><th>ราคา</th><th>จำนวน</th><th>รวม</th></tr></thead>
+        <tbody>
+          <tr><td colspan="4"><div class="sk" style="height:42px"></div></td></tr>
+        </tbody>
+        <tfoot><tr><td colspan="3" style="text-align:right"><b>รวมทั้งหมด</b></td><td id="sum">-</td></tr></tfoot>
+      </table>
+    </section>
+
+    <section class="card">
+      <h3 style="margin:0 0 8px">ที่อยู่จัดส่ง</h3>
+      <div id="addr" class="muted">กำลังโหลด…</div>
+    </section>
+  </main>
+
+  <div id="toasts" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const params = new URLSearchParams(location.search);
+    const orderId = Number(params.get('id') || 0);
+    if(!orderId){ alert('ไม่พบเลขที่คำสั่งซื้อ'); location.href='/user/orders.html'; }
+
+    const toast = (m)=>{ const w=$('#toasts'); const t=document.createElement('div'); t.className='toast'; t.textContent=m; w.appendChild(t); setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),260)}, 2200); };
+    const fmt = n => (Number(n)||0).toLocaleString('th-TH');
+
+    function pillHtml(st){
+      const s = String(st||'').toLowerCase();
+      if(s==='completed') return '<span class="pill ok">completed</span>';
+      if(s==='shipped')   return '<span class="pill ok">shipped</span>';
+      if(s==='paid')      return '<span class="pill ok">paid</span>';
+      if(s==='pending')   return '<span class="pill warn">pending</span>';
+      if(s==='canceled')  return '<span class="pill danger">canceled</span>';
+      return `<span class="pill">${st||'-'}</span>`;
+    }
+
+    function stepsHtml(status){
+      const s = String(status||'').toLowerCase();
+      const done = name => (['paid','shipped','completed'].indexOf(s) >= ['paid','shipped','completed'].indexOf(name));
+      const active = name => s===name || (s==='pending' && name==='pending');
+      const item = (name,label) => `<div class="step ${done(name)?'done':''} ${active(name)?'active':''}"><div class="dot"></div><span>${label}</span></div>`;
+      return `
+        <div class="steps">
+          ${item('pending','สั่งซื้อแล้ว')}
+          <div class="sep"></div>
+          ${item('paid','ชำระเงิน')}
+          <div class="sep"></div>
+          ${item('shipped','จัดส่ง')}
+          <div class="sep"></div>
+          ${item('completed','สำเร็จ')}
+        </div>
+      `;
+    }
+
+    function renderPayBadge(payment){
+      const el = $('#payBadge');
+      if(!payment){ el.innerHTML = 'สถานะ: —'; return; }
+      const s = String(payment.status||'').toLowerCase();
+      if(s==='verified') el.innerHTML = `สถานะ: <span class="pill ok">ชำระเงินสำเร็จ</span>`;
+      else if(s==='rejected') el.innerHTML = `สถานะ: <span class="pill danger">ถูกปฏิเสธ</span>`;
+      else el.innerHTML = `สถานะ: <span class="pill warn">รอพิจารณา</span>`;
+    }
+
+    function previewSlip(f){
+      if(!f) return;
+      if(!/^image\//.test(f.type))  { alert('ไฟล์ต้องเป็นรูปภาพ'); return; }
+      if(f.size>8*1024*1024)        { alert('ไฟล์ใหญ่เกิน 8MB'); return; }
+      const url = URL.createObjectURL(f);
+      $('#preview').src = url;
+      $('#previewWrap').style.display='flex';
+    }
+
+    async function loadDetail(){
+      try{
+        const r = await fetch('/api/user/orders/'+orderId, { credentials:'include' });
+        if(r.status===401){ location.href='/login.html'; return; }
+        const d = await r.json();
+        const o = d.order || {};
+
+        // Header
+        $('#head').innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+            <div>
+              <div><b>คำสั่งซื้อ #${o.id}</b> | สถานะ: ${pillHtml(o.status)}</div>
+              <div class="muted">วันที่: ${new Date(o.created_at).toLocaleString('th-TH')}</div>
+              ${o.tracking_no ? `<div class="muted">เลขพัสดุ: <b>${o.tracking_no}</b></div>`:''}
+            </div>
+            <div>${stepsHtml(o.status)}</div>
+          </div>
+        `;
+
+        // Items
+        const tb = $('#tblItems tbody');
+        if(!d.items || !d.items.length){
+          tb.innerHTML = `<tr><td colspan="4" class="muted">ไม่มีรายการสินค้า</td></tr>`;
+        }else{
+          tb.innerHTML = d.items.map(it => `
+            <tr>
+              <td>
+                <div class="row" style="align-items:center">
+                  <img class="thumb" src="${it.image_url || '/uploads/noimg.png'}" alt="">
+                  <div>
+                    <div><b>${it.name || '-'}</b></div>
+                    <div class="muted">รุ่น ${it.model || '-'}</div>
+                  </div>
+                </div>
+              </td>
+              <td>${fmt(it.price)}</td>
+              <td>${fmt(it.qty)}</td>
+              <td>${fmt((it.qty||0) * (it.price||0))}</td>
+            </tr>
+          `).join('');
+        }
+        $('#sum').textContent = fmt(o.total ?? (d.items||[]).reduce((s,it)=>s+(it.qty||0)*(it.price||0),0));
+
+        // Address
+        const addr = [
+          o.recipient_name || '-',
+          o.ship_address || '-',
+          [o.ship_subdistrict,o.ship_district,o.ship_province].filter(Boolean).join(' '),
+          o.ship_zipcode || ''
+        ].filter(Boolean).join(' — ');
+        $('#addr').textContent = addr || '-';
+
+        // Payment
+        renderPayBadge(d.payment);
+        const payBox = $('#payBox');
+        payBox.innerHTML = d.payment
+          ? `
+            <div><img class="slip" src="${d.payment.payment_image}" alt="หลักฐานการโอนล่าสุด"></div>
+            <div>
+              <div><b>สถานะชำระเงิน:</b> 
+                ${d.payment.status==='verified'
+                   ? '<span class="pill ok">ชำระเงินสำเร็จ</span>'
+                   : d.payment.status==='rejected'
+                     ? '<span class="pill danger">ถูกปฏิเสธ</span>'
+                     : '<span class="pill warn">รอพิจารณา</span>'}
+              </div>
+              <div class="muted" style="margin-top:6px">อัปโหลดเมื่อ: ${new Date(d.payment.uploaded_at).toLocaleString('th-TH')}</div>
+              ${d.payment.payment_image ? `<div style="margin-top:8px"><a class="btn" href="${d.payment.payment_image}" target="_blank">เปิดรูปในแท็บใหม่</a></div>` : ''}
+            </div>
+          `
+          : `<div class="muted">— ยังไม่มีหลักฐานการชำระเงิน —</div>`;
+      }catch(e){
+        $('#head').innerHTML = `<div class="pill danger">โหลดรายละเอียดไม่สำเร็จ</div>`;
+        $('#addr').textContent = '-';
+        $('#tblItems tbody').innerHTML = `<tr><td colspan="4" class="muted">เกิดข้อผิดพลาด</td></tr>`;
+      }
+    }
+
+    async function uploadSlip(){
+      const f = $('#slip').files[0];
+      if(!f){ alert('เลือกไฟล์ก่อน'); return; }
+      const btn = $('#uploadBtn'); btn.disabled = true; btn.textContent = 'กำลังอัปโหลด…';
+      try{
+        const fd = new FormData();
+        fd.append('order_id', orderId);
+        fd.append('payment_image', f);
+        const r = await fetch('/api/user/payments', { method:'POST', credentials:'include', body:fd });
+        const d = await r.json().catch(()=>({}));
+        if(r.status===401){ location.href='/login.html'; return; }
+        if(r.ok){
+          toast('อัปโหลดสำเร็จ');
+          $('#slip').value = ''; $('#previewWrap').style.display='none';
+          await loadDetail();
+        }else{
+          alert(d.message || 'อัปโหลดไม่สำเร็จ');
+        }
+      }catch(e){
+        alert('เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ');
+      }finally{
+        btn.disabled = false; btn.textContent = 'อัปโหลด';
+      }
+    }
+
+    loadDetail();
+  </script>
+</body>
+</html>

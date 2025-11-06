@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>คำสั่งซื้อของฉัน • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#f7f7f8;--card:#fff;--line:#e9e9ee;--text:#111827;--muted:#6b7280;
+      --accent:#2563eb;--ok:#16a34a;--warn:#f59e0b;--danger:#ef4444;
+      --radius:14px;--shadow:0 2px 8px rgba(15,23,42,.06),0 12px 24px rgba(15,23,42,.06)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+    header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;gap:10px;z-index:5}
+    header .sp{flex:1}
+    .btn{appearance:none;border:0;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);background:#fff}
+    .btn.ghost{border:1px solid var(--accent);color:var(--accent)}
+    .btn.danger{background:var(--danger);color:#fff}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    main{max-width:1100px;margin:14px auto;padding:0 14px 60px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}
+    .order{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px;background:#fff}
+    .l{flex:1}
+    .r{width:320px;display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#1f2937;font-size:12px}
+    .pill.ok{background:#dcfce7;color:#065f46}
+    .pill.warn{background:#fef3c7;color:#92400e}
+    .pill.danger{background:#fee2e2;color:#991b1b}
+    .muted{color:var(--muted);font-size:12px}
+    img.thumb{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+    img.slip{width:110px;height:auto;border-radius:10px;border:1px solid var(--line)}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left}
+    /* toast */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:grid;gap:10px;z-index:50}
+    .toast{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:12px 14px;border-radius:12px;font-weight:700}
+  </style>
+</head>
+<body>
+  <header>
+    <b>คำสั่งซื้อของฉัน</b>
+    <div class="sp"></div>
+    <a class="btn ghost" href="/user/user.html">⬅️ ไปหน้าสมาชิก</a>
+  </header>
+
+  <main>
+    <div id="list" class="card">กำลังโหลด…</div>
+  </main>
+
+  <div id="toasts" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    const list = document.getElementById('list');
+    const toasts = document.getElementById('toasts');
+    const toast = (m)=>{ const t=document.createElement('div'); t.className='toast'; t.textContent=m; toasts.appendChild(t); setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),260)}, 2000); };
+    const fmt = n => (Number(n)||0).toLocaleString('th-TH');
+
+    function statusPill(st){
+      if(st==='completed') return '<span class="pill ok">completed</span>';
+      if(st==='shipped')   return '<span class="pill ok">shipped</span>';
+      if(st==='paid')      return '<span class="pill ok">paid</span>';
+      if(st==='pending')   return '<span class="pill warn">pending</span>';
+      if(st==='canceled')  return '<span class="pill danger">canceled</span>';
+      return `<span class="pill">${st}</span>`;
+    }
+
+    // ลบคำสั่งซื้อ (สมมุติ API: DELETE /api/user/orders/:id)
+    async function deleteOrder(id){
+      if(!confirm('ยืนยันลบคำสั่งซื้อนี้?')) return;
+      try{
+        const r = await fetch('/api/user/orders/'+id, { method:'DELETE', credentials:'include' });
+        if(r.status===401){ location.href='/login.html'; return; }
+        const d = await r.json().catch(()=>({}));
+        if(!r.ok){ alert(d.message || 'ลบไม่สำเร็จ'); return; }
+        toast('ลบคำสั่งซื้อแล้ว');
+        await loadOrders();
+      }catch(e){ alert('เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ'); }
+    }
+
+    // โหลดรายการออเดอร์ + รายละเอียด (เพื่อดูสลิป)
+    async function loadOrders(){
+      const r = await fetch('/api/user/orders', { credentials:'include' });
+      if(r.status===401){ location.href='/login.html'; return; }
+      const orders = await r.json();
+
+      // ดึงรายละเอียดแต่ละใบเพื่อเช็คสลิป
+      const details = await Promise.all(orders.map(async o => {
+        const res = await fetch('/api/user/orders/'+o.id, { credentials:'include' });
+        const d   = await res.json();
+        return { base:o, detail:d };
+      }));
+
+      if(!details.length){ list.textContent = 'ยังไม่มีคำสั่งซื้อ'; return; }
+
+      list.innerHTML = details.map(({base,detail})=>{
+        const firstImg = (detail.items?.[0]?.image_url) || '/uploads/noimg.png';
+        const slip = detail.payment?.payment_image || '';
+        const showDelete = base.status==='pending' && !slip; // เงื่อนไขตามที่ต้องการ
+
+        return `
+          <div class="order">
+            <div class="l">
+              <div><b>คำสั่งซื้อ #${base.id}</b> | สถานะ: ${statusPill(base.status)}</div>
+              <div class="muted">วันที่: ${new Date(base.created_at).toLocaleString('th-TH')}</div>
+              <table style="margin-top:8px">
+                <tr>
+                  <td style="width:68px"><img class="thumb" src="${firstImg}" alt=""></td>
+                  <td>
+                    <div class="muted">จำนวนรายการ: ${base.items_count}</div>
+                    <div>ยอดรวม: <b>${fmt(base.total)}</b> บาท</div>
+                    ${base.tracking_no ? `<div class="muted">เลขพัสดุ: ${base.tracking_no}</div>`:''}
+                    <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
+                      <a class="btn ghost" href="/user/order-detail.html?id=${base.id}">ดูรายละเอียด</a>
+                      ${showDelete ? `<button class="btn danger" onclick="deleteOrder(${base.id})">ลบคำสั่งซื้อ</button>` : ``}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <div class="r">
+              ${slip ? `<img class="slip" src="${slip}" alt="สลิปการโอน">` : '<div class="muted">ไม่มีสลิป</div>'}
+              <div>${base.status==='paid'||base.status==='shipped'||base.status==='completed'
+                  ? '<span class="pill ok">คำสั่งซื้อสำเร็จ</span>'
+                  : '<span class="pill warn">รอชำระ/ตรวจสอบ</span>'}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>

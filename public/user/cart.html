@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>ตะกร้าสินค้า • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* ===================== THEME ===================== */
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --line:#e7e9ef; --text:#0f172a; --muted:#64748b;
+      --accent:#2563eb; --danger:#ef4444; --success:#16a34a; --warn:#f59e0b;
+      --radius:14px; --radius-sm:10px; --shadow:0 2px 8px rgba(15,23,42,.06), 0 12px 24px rgba(15,23,42,.06);
+      --focus:0 0 0 3px rgba(37,99,235,.25);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{ --bg:#0b1020; --card:#0f1528; --line:#20263a; --text:#e5e7eb; --muted:#94a3b8; --shadow:0 2px 12px rgba(0,0,0,.5), 0 20px 40px rgba(0,0,0,.35); }
+      table tbody tr{ border-color:#1b2236; }
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+
+    /* ===================== HEADER ===================== */
+    header{position:sticky;top:0;z-index:20;display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);backdrop-filter:blur(8px);background:color-mix(in oklab, var(--card) 92%, transparent)}
+    header .sp{flex:1}
+    header b{font-weight:800;letter-spacing:.3px}
+    a.btn,button.btn{appearance:none;border:0;border-radius:var(--radius-sm);padding:10px 14px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block;transition:.18s ease;box-shadow:var(--shadow)}
+    .btn{background:#e5e7eb;color:#111827}
+    .btn:focus-visible{outline:none;box-shadow:var(--focus), var(--shadow)}
+    .btn:hover{filter:brightness(1.03)}
+    .btn.primary{background:var(--accent);color:#fff}
+    .btn.danger{background:var(--danger);color:#fff}
+    .btn:disabled{opacity:.6;cursor:not-allowed;filter:none}
+
+    main{max-width:980px;margin:14px auto;padding:0 14px 100px}
+
+    /* ===================== TABLE (Card-like rows) ===================== */
+    table{width:100%;border-collapse:separate;border-spacing:0 10px}
+    thead th{font-size:12px;color:var(--muted);font-weight:800;padding:0 10px}
+    tbody tr{background:var(--card);box-shadow:var(--shadow)}
+    tbody td{padding:14px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:middle}
+    tbody tr td:first-child{border-left:1px solid var(--line);border-top-left-radius:12px;border-bottom-left-radius:12px}
+    tbody tr td:last-child{border-right:1px solid var(--line);border-top-right-radius:12px;border-bottom-right-radius:12px}
+
+    .row-h{display:flex;gap:12px;align-items:center}
+    img.thumb{width:64px;height:64px;object-fit:cover;border-radius:12px;border:1px solid var(--line);background:#fff}
+    .muted{color:var(--muted);font-size:12px}
+
+    tfoot td{padding:10px 12px}
+    tfoot tr{background:transparent;box-shadow:none}
+    tfoot .sumwrap{display:flex;justify-content:flex-end;gap:18px;align-items:center}
+    #sum{font-weight:900}
+
+    input[type=number]{width:84px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    input[type=number]:focus{outline:none;box-shadow:var(--focus)}
+
+    /* Quantity stepper */
+    .qty{display:inline-grid;grid-template-columns:32px 1fr 32px;gap:6px;align-items:center}
+    .qtybtn{height:36px;border:1px solid var(--line);background:var(--card);border-radius:10px;cursor:pointer;display:grid;place-items:center;box-shadow:var(--shadow)}
+    .qtybtn:hover{filter:brightness(1.03)}
+    .qty input{height:36px;text-align:center}
+
+    /* Empty state */
+    .empty{margin-top:14px;padding:22px;border:1px dashed var(--line);border-radius:var(--radius);background:var(--card);display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .hidden{display:none}
+
+    /* Toast */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:grid;gap:10px;z-index:50}
+    .toast{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);padding:12px 14px;border-radius:12px;font-weight:700}
+
+    /* Skeleton */
+    .sk{position:relative;overflow:hidden;background:color-mix(in oklab,#cfd7e7 20%, #fff)}
+    .sk::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-100%);animation:sh 1.2s infinite}
+    @keyframes sh{to{transform:translateX(100%)}}
+
+    /* Sticky checkout bar (mobile) */
+    .ckbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 20px rgba(0,0,0,.06);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .cksum{font-weight:800}
+
+    /* Responsive: convert table to stacked cards */
+    @media (max-width:720px){
+      thead{display:none}
+      table, tbody, tr, td{display:block;width:100%}
+      tbody tr{padding:10px}
+      tbody td{border:none;padding:6px 0}
+      tbody tr + tr{margin-top:10px}
+      tfoot{display:none}
+      .ckbar{display:flex}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <b>🛒 ตะกร้าสินค้า</b>
+  <div class="sp"></div>
+  <a class="btn" href="/user/user.html">⬅️ กลับไปเลือกสินค้า</a>
+</header>
+
+<main>
+  <table id="tbl">
+    <thead>
+      <tr><th>สินค้า</th><th>ราคา</th><th>จำนวน</th><th>รวม</th><th></th></tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="5">
+          <div class="sumwrap">
+            <div class="muted">รวมทั้งสิ้น</div>
+            <div id="sum">0</div>
+          </div>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div id="empty" class="empty hidden">
+    <div>
+      <div style="font-weight:900">ยังไม่มีสินค้าในตะกร้า</div>
+      <div class="muted">เลือกสินค้าจากหน้าแคตตาล็อกเพื่อเริ่มช้อปปิ้ง</div>
+    </div>
+    <a class="btn primary" href="/user/user.html">เริ่มเลือกสินค้า</a>
+  </div>
+
+  <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+    <button id="checkoutBtn" class="btn primary" onclick="checkout()">ยืนยันการสั่งซื้อ</button>
+  </div>
+</main>
+
+<!-- Sticky checkout (mobile) -->
+<div id="ckbar" class="ckbar hidden" aria-live="polite">
+  <div class="cksum">รวม: <span id="sum2">0</span> บาท</div>
+  <button id="ckbtn2" class="btn primary" onclick="checkout()">ยืนยันการสั่งซื้อ</button>
+</div>
+
+<div id="toasts" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+  const $ = s => document.querySelector(s);
+  const fmtBaht = n => (Number(n)||0).toLocaleString('th-TH', { minimumFractionDigits: 0 });
+
+  function setOut(){/* noop */}
+
+  function toast(msg){
+    const wrap = $('#toasts');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(), 260); }, 2200);
+  }
+
+  function skeletonRows(n=3){
+    const tb = $('#tbl tbody');
+    tb.innerHTML = Array.from({length:n}, () => `
+      <tr>
+        <td><div class="row-h"><div class="sk" style="width:64px;height:64px;border-radius:12px"></div><div><div class="sk" style="width:160px;height:16px;border-radius:6px"></div><div class="sk" style="width:120px;height:12px;margin-top:6px;border-radius:6px"></div></div></div></td>
+        <td><div class="sk" style="width:60px;height:16px;border-radius:6px"></div></td>
+        <td><div class="sk" style="width:120px;height:36px;border-radius:10px"></div></td>
+        <td><div class="sk" style="width:70px;height:16px;border-radius:6px"></div></td>
+        <td><div class="sk" style="width:60px;height:36px;border-radius:10px"></div></td>
+      </tr>`).join('');
+  }
+
+  // ===== Cart logic =====
+  async function loadCart(){
+    try{
+      skeletonRows(3);
+      const r = await fetch('/api/user/cart', { credentials:'include' });
+      const d = await r.json();
+      setOut(d);
+
+      const items = (d.items || []);
+      const tb = $('#tbl tbody');
+      if(!items.length){
+        tb.innerHTML = '';
+        $('#sum').textContent = '0';
+        $('#empty').classList.remove('hidden');
+        $('#ckbar').classList.add('hidden');
+      } else {
+        $('#empty').classList.add('hidden');
+        tb.innerHTML = items.map(it=>`
+          <tr>
+            <td>
+              <div class="row-h">
+                <img class="thumb" src="${it.image_url || '/uploads/noimg.png'}" alt="" loading="lazy" onerror="this.onerror=null;this.src='/uploads/noimg.png'">
+                <div>
+                  <div style="font-weight:900">${it.name}</div>
+                  <div class="muted">รุ่น ${it.model||'-'}</div>
+                </div>
+              </div>
+            </td>
+            <td>${fmtBaht(it.price)}</td>
+            <td>
+              <div class="qty">
+                <button class="qtybtn" aria-label="ลดจำนวน" onclick="chgQty(${it.product_id}, -1, ${it.stock})">−</button>
+                <input id="qty-${it.product_id}" type="number" min="1" value="${it.qty}" onchange="updateQty(${it.product_id}, this.value)" />
+                <button class="qtybtn" aria-label="เพิ่มจำนวน" onclick="chgQty(${it.product_id}, 1, ${it.stock})">+</button>
+              </div>
+              <div class="muted">สต๊อก: ${it.stock}</div>
+            </td>
+            <td>${fmtBaht(it.subtotal)}</td>
+            <td><button class="btn danger" onclick="removeItem(${it.product_id})">ลบ</button></td>
+          </tr>
+        `).join('');
+
+        const total = Number((d.summary && d.summary.total) || 0);
+        $('#sum').textContent = fmtBaht(total);
+        $('#sum2').textContent = fmtBaht(total);
+        const btn = $('#checkoutBtn');
+        const btn2 = $('#ckbtn2');
+        if (btn) btn.disabled = items.length === 0;
+        if (btn2) btn2.disabled = items.length === 0;
+        $('#ckbar').classList.remove('hidden');
+      }
+    }catch(e){
+      console.error(e);
+      alert('โหลดตะกร้าไม่สำเร็จ');
+    }
+  }
+
+  function chgQty(pid, delta, stock){
+    const el = document.getElementById('qty-'+pid);
+    if(!el) return;
+    let v = Number(el.value)||1;
+    v = Math.max(1, Math.min(v + delta, Number(stock)||9999));
+    if(v != Number(el.value)){
+      el.value = v;
+      updateQty(pid, v);
+    }
+  }
+
+  async function updateQty(pid, q){
+    try{
+      const r = await fetch('/api/user/cart/item/'+pid, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        credentials:'include', body: JSON.stringify({ qty: Number(q) })
+      });
+      const d = await r.json();
+      if(!r.ok){ alert(d.message || 'แก้ไขจำนวนไม่สำเร็จ'); }
+      else { toast('อัปเดตจำนวนแล้ว'); }
+      setOut({ pid, qty:q, server:d });
+      await loadCart();
+    }catch(e){
+      console.error(e);
+      alert('แก้ไขจำนวนไม่สำเร็จ');
+    }
+  }
+
+  async function removeItem(pid){
+    if(!confirm('ลบสินค้านี้ออกจากตะกร้า?')) return;
+    try{
+      const r = await fetch('/api/user/cart/item/'+pid, { method:'DELETE', credentials:'include' });
+      const d = await r.json();
+      if(!r.ok){ alert(d.message || 'ลบไม่สำเร็จ'); }
+      else { toast('ลบสินค้าแล้ว'); }
+      setOut({ pid, server:d });
+      await loadCart();
+    }catch(e){
+      console.error(e);
+      alert('ลบไม่สำเร็จ');
+    }
+  }
+
+  // 👉 เด้งไปหน้า Checkout (ไม่ยิง API สร้างออเดอร์ในหน้านี้)
+  function checkout(){
+    location.href = '/user/checkout.html';
+  }
+
+  // เริ่มต้น
+  loadCart();
+</script>
+</body>
+</html>

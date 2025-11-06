@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>Admin • LOOK UP</title>
+  <style>
+    :root{
+      --bg:#f7f7f8;--card:#ffffff;--line:#e9e9ee;--text:#111827;--muted:#6b7280;--brand:#0f172a;
+      --accent:#2563eb;--ok:#16a34a;--warn:#f59e0b;--danger:#ef4444;
+      --radius:14px;--radius-sm:10px;--shadow:0 2px 8px rgba(15,23,42,.06),0 12px 24px rgba(15,23,42,.06);
+      --focus:0 0 0 3px rgba(37,99,235,.25)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+
+    /* Header */
+    header{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);backdrop-filter:blur(8px);background:color-mix(in oklab,var(--card) 92%, transparent)}
+    header h1{margin:0;font-size:18px;letter-spacing:.2px;color:var(--brand)}
+    header .sp{flex:1}
+
+    /* Tabs */
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{appearance:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;box-shadow:var(--shadow);transition:.18s ease}
+    .tab.active{border-color:transparent;background:var(--accent);color:#fff}
+
+    /* Dropdown menu */
+    .chip{appearance:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
+    .chip:focus-visible{outline:none;box-shadow:var(--focus),var(--shadow)}
+    .menu-wrap{position:relative}
+    #menu{position:absolute;right:0;top:44px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);width:240px;padding:8px;display:none;z-index:20}
+    #menu a,#menu button{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--text);cursor:pointer;font-weight:700}
+    #menu a:hover,#menu button:hover{background:#f8fafc}
+
+    /* Layout & controls */
+    main{max-width:1200px;margin:16px auto;padding:0 16px 70px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-top:12px}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .col{flex:1 1 320px}
+    .btn{padding:10px 14px;border:0;border-radius:10px;font-weight:800;cursor:pointer;box-shadow:var(--shadow)}
+    .btn.ok{background:var(--ok);color:#fff}
+    .btn.warn{background:var(--warn);color:#fff}
+    .btn.danger{background:var(--danger);color:#fff}
+    .btn.gray{background:#e5e7eb;color:#111827;border:1px solid var(--line)}
+    .btn.outline{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    label{display:block;margin:8px 0 4px;font-weight:700;color:var(--muted)}
+    input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    input:focus,select:focus,textarea:focus{outline:none;box-shadow:var(--focus)}
+    textarea{min-height:90px}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#eef2ff;color:#1f2937;font-size:12px;font-weight:800}
+    img.thumb{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+    .muted{color:var(--muted);font-size:12px}
+
+    /* Tables */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    thead th{font-size:12px;color:var(--muted);font-weight:800;padding:0 10px}
+    tbody tr{background:var(--card);box-shadow:var(--shadow)}
+    tbody td{padding:12px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    tbody tr td:first-child{border-left:1px solid var(--line);border-top-left-radius:12px;border-bottom-left-radius:12px}
+    tbody tr td:last-child{border-right:1px solid var(--line);border-top-right-radius:12px;border-bottom-right-radius:12px}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Admin • LOOK UP</h1>
+
+    <div class="sp"></div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" id="tab-products" onclick="showSection('sec-products', this)">สินค้า</button>
+      <button class="tab" id="tab-users" onclick="showSection('sec-users', this)">ผู้ใช้</button>
+      <button class="tab" id="tab-orders" onclick="showSection('sec-orders', this)">คำสั่งซื้อ</button>
+      <button class="tab" id="tab-reports" onclick="showSection('sec-reports', this)">รายงาน</button>
+    </div>
+
+    <div class="sp"></div>
+
+    <!-- Admin email + dropdown -->
+    <div class="menu-wrap">
+      <button class="chip" data-menu-btn onclick="toggleMenu()" aria-haspopup="menu" aria-expanded="false" title="เมนูผู้ดูแล">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span id="adminEmail">admin@lookup</span>
+      </button>
+      <div id="menu" role="menu" aria-label="เมนูผู้ดูแล">
+        <button onclick="loadProfile()">👤 โปรไฟล์ผู้ดูแล</button>
+        <button onclick="logout()">🚪 ออกจากระบบ</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- PRODUCTS -->
+    <section id="sec-products" class="card">
+      <h2>สินค้า</h2>
+      <div class="toolbar">
+        <button class="btn" onclick="loadProducts()">📦 โหลดรายการสินค้า</button>
+        <button class="btn ok" onclick="toggle('box-add')">➕ เพิ่มสินค้า</button>
+        <button class="btn warn" onclick="toggle('box-edit')">✏️ แก้ไข/ลบสินค้า</button>
+      </div>
+
+      <!-- เพิ่มสินค้า -->
+      <div id="box-add" class="card hidden">
+        <h3>➕ เพิ่มสินค้าใหม่</h3>
+        <div class="row">
+          <div class="col">
+            <label>แบรนด์</label><select id="brand_create"></select>
+            <label>ชื่อรุ่น/ชื่อสินค้า</label><input id="name_create" placeholder="เช่น SAFARI UV 400 รุ่น S0952">
+            <label>รหัสสินค้า (SKU/Model)</label><input id="model_create" placeholder="เช่น S0952">
+            <label>คำอธิบายสินค้า (แสดงใต้รูป)</label><textarea id="desc_create"></textarea>
+            <label>รูปภาพ (ไฟล์)</label><input id="img_create" type="file" accept="image/*">
+          </div>
+          <div class="col">
+            <label>รูปทรงกรอบแว่น</label>
+            <select id="shape_create"><option value="">— เลือก —</option><option>Round</option><option>Square</option><option>Drop</option><option>Two Bar</option></select>
+            <label>ประเภทของแว่นตา</label>
+            <select id="type_create"><option value="">— เลือก —</option><option>Eyeglasses</option><option>Sunglasses</option></select>
+            <label>ความกว้างเลนส์ (มม.)</label><input id="lens_create" type="number">
+            <label>ความกว้างระหว่างจมูก (มม.)</label><input id="bridge_create" type="number">
+            <label>ความยาวขา (มม.)</label><input id="temple_create" type="number">
+            <label>หน้ากว้าง (มม.)</label><input id="front_create" type="number">
+          </div>
+          <div class="col">
+            <label>สถานะสินค้า</label><select id="status_create"><option value="in">มีสินค้า</option><option value="out">สินค้าหมด</option></select>
+            <label>จำนวนสินค้า (ชิ้น)</label><input id="qty_create" type="number" value="0">
+            <label>ราคาสินค้า (บาท)</label><input id="price_create" type="number" step="0.01">
+            <label>สินค้าใหม่?</label><select id="isnew_create"><option value="0">ไม่ใช่</option><option value="1">ใช่</option></select>
+            <label>วันที่เพิ่มสินค้า (ตัวเลือก)</label><input id="date_create" type="date">
+            <div style="margin-top:10px"><button class="btn ok" onclick="createProduct()">บันทึกสินค้าใหม่</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- แก้ไข/ลบ -->
+      <div id="box-edit" class="card hidden">
+        <h3>✏️ แก้ไข / 🗑️ ลบสินค้า</h3>
+        <div class="row">
+          <div class="col">
+            <label>ระบุ ID สินค้า</label>
+            <div class="row" style="gap:8px">
+              <input id="id_edit" type="number" placeholder="เช่น 1" style="flex:1 1 120px">
+              <button class="btn gray" onclick="loadOneForEdit()">โหลดข้อมูล</button>
+              <button id="btnArchive" class="btn warn" onclick="archiveProduct()">ซ่อนสินค้า</button>
+              <button id="btnRestore" class="btn ok" onclick="restoreProduct()">กู้คืนสินค้า</button>
+              <div class="muted" id="prodStatusNote" style="margin-top:6px">สถานะสินค้า: -</div>
+            </div>
+
+            <label>แบรนด์</label><select id="brand_edit"></select>
+            <label>ชื่อรุ่น/ชื่อสินค้า</label><input id="name_edit">
+            <label>รหัสสินค้า (SKU/Model)</label><input id="model_edit">
+            <label>คำอธิบายสินค้า</label><textarea id="desc_edit"></textarea>
+            <label>อัปโหลดรูปใหม่ (ถ้าต้องการ)</label><input id="img_edit" type="file" accept="image/*">
+          </div>
+          <div class="col">
+            <label>รูปทรงกรอบแว่น</label>
+            <select id="shape_edit"><option value="">— เลือก —</option><option>Round</option><option>Square</option><option>Drop</option><option>Two Bar</option></select>
+            <label>ประเภทของแว่นตา</label>
+            <select id="type_edit"><option value="">— เลือก —</option><option>Eyeglasses</option><option>Sunglasses</option></select>
+            <label>ความกว้างเลนส์ (มม.)</label><input id="lens_edit" type="number">
+            <label>ความกว้างระหว่างจมูก (มม.)</label><input id="bridge_edit" type="number">
+            <label>ความยาวขา (มม.)</label><input id="temple_edit" type="number">
+            <label>หน้ากว้าง (มม.)</label><input id="front_edit" type="number">
+          </div>
+          <div class="col">
+            <label>สถานะสินค้า</label><select id="status_edit"><option value="in">มีสินค้า</option><option value="out">สินค้าหมด</option></select>
+            <label>จำนวนสินค้า (ชิ้น)</label><input id="qty_edit" type="number">
+            <label>ราคาสินค้า (บาท)</label><input id="price_edit" type="number" step="0.01">
+            <label>สินค้าใหม่?</label><select id="isnew_edit"><option value="0">ไม่ใช่</option><option value="1">ใช่</option></select>
+            <div style="margin-top:10px"><button class="btn warn" onclick="updateProduct()">อัปเดตสินค้า</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ตารางสินค้า (เพิ่มคอลัมน์ "สถานะ") -->
+      <div class="card">
+        <table id="tblProducts">
+          <thead>
+            <tr>
+              <th>ID</th><th>รูป</th><th>ชื่อ</th><th>แบรนด์</th><th>สต๊อก</th><th>ราคา</th><th>สถานะ</th><th>ดู/แก้</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="muted" style="margin-top:6px">* คลิก “เลือก” เพื่อใส่ ID ให้ฟอร์มแก้ไขอัตโนมัติ</div>
+      </div>
+    </section>
+
+    <!-- USERS -->
+    <section id="sec-users" class="card hidden">
+      <h2>ผู้ใช้</h2>
+      <div class="toolbar">
+        <button class="btn" onclick="loadUsers()">👤 โหลดรายชื่อผู้ใช้</button>
+        <button class="btn gray" onclick="toggle('box-user-view')">🔎 ดูข้อมูลรายคน</button>
+        <button class="btn warn" onclick="toggle('box-user-orders')">🧾 ประวัติคำสั่งซื้อของผู้ใช้</button>
+      </div>
+
+      <div id="box-user-view" class="card hidden">
+        <h3>🔍 ดูข้อมูลรายคน</h3>
+        <div class="row" style="gap:8px;align-items:center">
+          <input id="u_id" type="number" placeholder="User ID" style="flex:1 1 140px">
+          <button class="btn gray" onclick="viewUser()">ดูข้อมูล</button>
+        </div>
+        <div id="userCard" class="card hidden" style="margin-top:10px;"></div>
+      </div>
+
+      <div id="box-user-orders" class="card hidden">
+        <div class="row" style="gap:8px;align-items:center">
+          <input id="uo_id" type="number" placeholder="User ID" style="flex:1 1 140px">
+          <button class="btn gray" onclick="loadUserOrders()">โหลดประวัติคำสั่งซื้อ</button>
+        </div>
+        <table id="tblUserOrders" style="margin-top:10px">
+          <thead>
+            <tr>
+              <th>Order ID</th><th>วันที่</th><th>สถานะออเดอร์</th><th>สถานะชำระเงิน</th><th>จำนวนรายการ</th><th>ยอดรวม (บาท)</th><th>เลขพัสดุ</th><th>ดูรายละเอียด</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="muted" style="margin-top:6px">* กด “ดู” เพื่อไปเปิดรายละเอียดในแท็บ “คำสั่งซื้อ” อัตโนมัติ</div>
+      </div>
+
+      <div class="card">
+        <table id="tblUsers">
+          <thead><tr><th>ID</th><th>ชื่อ</th><th>อีเมล</th><th>เบอร์</th><th>ที่อยู่</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section id="sec-orders" class="card hidden">
+      <h2>คำสั่งซื้อ</h2>
+      <div class="toolbar">
+        <button class="btn" onclick="loadOrders()">🛒 โหลดรายการคำสั่งซื้อ</button>
+        <button class="btn gray" onclick="toggle('box-order-view')">🔎 ดูรายละเอียด & อัปเดตสถานะ</button>
+      </div>
+
+      <div id="box-order-view" class="card hidden">
+        <div class="row" style="gap:8px;align-items:center">
+          <input id="orderId" type="number" placeholder="Order ID" style="flex:1 1 140px">
+          <button class="btn gray" onclick="openOrder()">เปิดดู</button>
+        </div>
+
+        <div id="detail" class="hidden" style="margin-top:10px">
+          <div id="orderHeader"></div>
+          <hr>
+          <h3>รายการสินค้า</h3>
+          <table id="tblItems">
+            <thead><tr><th>Product ID</th><th>สินค้า</th><th>ราคา</th><th>จำนวน</th><th>รวม</th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td colspan="4" style="text-align:right"><b>รวมทั้งหมด</b></td><td id="sum"></td></tr></tfoot>
+          </table>
+          <hr>
+          <div class="row">
+            <div class="col">
+              <h3>อัปเดตสถานะคำสั่งซื้อ</h3>
+              <label>สถานะ</label>
+              <select id="statusSel"><option value="pending">pending</option><option value="paid">paid</option><option value="shipped">shipped</option><option value="completed">completed</option><option value="canceled">canceled</option></select>
+              <label style="margin-top:6px">เลขพัสดุ</label><input id="tracking">
+              <div style="margin-top:8px"><button class="btn ok" onclick="saveOrderStatus()">บันทึก</button></div>
+            </div>
+            <div class="col">
+              <h3>หลักฐานการชำระเงิน</h3>
+              <div id="payBox">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table id="tblOrders">
+          <thead><tr><th>ID</th><th>ผู้สั่ง</th><th>อีเมล</th><th>สถานะ</th><th>ยอด</th><th>วันที่</th><th>เลือก</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="sec-reports" class="card hidden">
+      <h2>รายงาน</h2>
+
+      <div class="card">
+        <h3>🗓 เลือกช่วงวันที่</h3>
+        <div class="row">
+          <div class="col"><label>จาก (from)</label><input type="date" id="rep_from"></div>
+          <div class="col"><label>ถึง (to)</label><input type="date" id="rep_to"></div>
+          <div class="col" style="align-self:end"><button class="btn" onclick="presetMonth()">เดือนนี้</button></div>
+        </div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn ok" onclick="loadSales()">📊 รายงานยอดขาย</button>
+          <button class="btn warn" onclick="loadTopProducts()">🏆 สินค้าขายดี</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>สรุปรวม</h3>
+        <div id="sumBox" class="muted">—</div>
+      </div>
+
+      <div class="card">
+        <h3>ยอดขายรายวัน</h3>
+        <table id="tblDaily"><thead><tr><th>วันที่</th><th>ออเดอร์</th><th>รายได้ (บาท)</th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <div class="card">
+        <h3>สินค้าขายดี</h3>
+        <table id="tblTop"><thead><tr><th>Product ID</th><th>สินค้า</th><th>รุ่น</th><th>จำนวน</th><th>รายได้ (บาท)</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    function setOut(){} // no-op
+
+    /* Menu */
+    function toggleMenu(){
+      const m = $('menu');
+      const open = m.style.display==='block';
+      m.style.display = open ? 'none' : 'block';
+      const closer = (e)=>{ if(!m.contains(e.target) && !e.target.closest('[data-menu-btn]')){ m.style.display='none'; document.removeEventListener('click', closer); } };
+      if(!open) setTimeout(()=>document.addEventListener('click', closer),0);
+    }
+
+    /* Tabs */
+    function showSection(id, btn){
+      ['sec-products','sec-users','sec-orders','sec-reports'].forEach(s=>$(s).classList.add('hidden'));
+      $(id).classList.remove('hidden');
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      if(btn) btn.classList.add('active');
+    }
+    function toggle(id){ const el=$(id); if(el) el.classList.toggle('hidden'); }
+
+    /* Auth/Profile */
+    async function loadProfile(){
+      try{
+        const r=await fetch('/api/admin/profile',{credentials:'include'});
+        if(r.status===401){ location.href='/login.html'; return; }
+        const d=await r.json(); setOut(d);
+      }catch(e){}
+    }
+    async function logout(){ try{ await fetch('/api/auth/logout',{method:'POST',credentials:'include'}); }catch(e){} location.href='/login.html'; }
+    (async function setAdminEmail(){
+      try{
+        const r = await fetch('/api/admin/profile',{credentials:'include'});
+        if(r.status===401){ location.href='/login.html'; return; }
+        const d = await r.json();
+        if(d && d.email) $('adminEmail').textContent = d.email;
+      }catch(e){}
+    })();
+
+    /* Brands */
+    async function loadBrands(){
+      const r = await fetch('/api/admin/brands', { credentials:'include' });
+      const list = await r.json();
+      const opts = `<option value="">— เลือก —</option>` + list.map(b=>`<option value="${b.id}">${b.brand_name}</option>`).join('');
+      ['brand_create','brand_edit'].forEach(id => $(id).innerHTML = opts);
+    }
+
+    /* Products */
+    async function loadProducts(){
+      const r = await fetch('/api/admin/products', { credentials:'include' });
+      const rows = await r.json();
+      const tb = $('tblProducts').querySelector('tbody');
+      tb.innerHTML = rows.map(p=>`
+        <tr>
+          <td>${p.id}</td>
+          <td>${p.image_url?`<img class="thumb" src="${p.image_url}">`:'-'}</td>
+          <td>${p.name || '-'}</td>
+          <td>${p.brand_name || '-'}</td>
+          <td>${p.stock}</td>
+          <td>${Number(p.price).toLocaleString()}</td>
+          <td>${
+            Number(p.is_active)===1
+              ? '<span class="pill" style="background:#dcfce7">กำลังขาย</span>'
+              : '<span class="pill" style="background:#fee2e2">ปิดการขาย</span>'
+          }</td>
+          <td><button class="btn gray" onclick="prefill(${p.id})">เลือก</button></td>
+        </tr>
+      `).join('');
+      setOut(rows);
+    }
+    function prefill(id){ $('id_edit').value=id; $('box-edit').classList.remove('hidden'); loadOneForEdit(); }
+
+    async function createProduct(){
+      const fd = new FormData();
+      fd.append('brand_id', $('brand_create').value);
+      fd.append('product_name', $('name_create').value);
+      fd.append('model', $('model_create').value);
+      fd.append('description', $('desc_create').value);
+      fd.append('frame_shape', $('shape_create').value);
+      fd.append('glasses_type_ui', $('type_create').value);
+      fd.append('lens_width_mm', $('lens_create').value);
+      fd.append('bridge_mm', $('bridge_create').value);
+      fd.append('temple_mm', $('temple_create').value);
+      fd.append('front_width_mm', $('front_create').value);
+      fd.append('status_stock', $('status_create').value);
+      fd.append('qty', $('qty_create').value);
+      fd.append('price', $('price_create').value);
+      fd.append('is_new', $('isnew_create').value);
+      const d=$('date_create').value; if(d) fd.append('created_date', d);
+      const f=$('img_create').files[0]; if(f) fd.append('image', f);
+
+      const r = await fetch('/api/admin/products',{method:'POST',credentials:'include',body:fd});
+      setOut(await r.json());
+      loadProducts();
+    }
+
+    async function loadOneForEdit(){
+      const id = $('id_edit').value; if(!id) return alert('ใส่ ID');
+      const r = await fetch(`/api/admin/products/${id}`, { credentials:'include' });
+      const p = await r.json();
+      if (p.message){ setOut(p.message); return; }
+
+      $('brand_edit').value = p.brand_id || '';
+      $('name_edit').value = p.name || '';
+      $('model_edit').value = p.model || '';
+      $('desc_edit').value = p.description || '';
+      $('shape_edit').value = p.frame_shape || '';
+      $('type_edit').value = p.glasses_type==='สายตา'?'Eyeglasses':(p.glasses_type==='กันแดด'?'Sunglasses':'');
+      $('lens_edit').value = p.lens_width_mm || '';
+      $('bridge_edit').value = p.bridge_mm || '';
+      $('temple_edit').value = p.temple_mm || '';
+      $('front_edit').value = p.front_width_mm || '';
+      $('status_edit').value = Number(p.stock)>0?'in':'out';
+      $('qty_edit').value = p.stock || 0;
+      $('price_edit').value = p.price || '';
+      $('isnew_edit').value = p.is_new ? '1' : '0';
+
+      // >>> อัปเดตสถานะ + เปิด/ปิดปุ่มซ่อน/กู้คืน
+      const isActive = Number(p.is_active ?? 1) === 1;
+      const archBtn = $('btnArchive');
+      const restBtn = $('btnRestore');
+      if (archBtn) archBtn.disabled = !isActive;   // ถ้าแอคทีฟอยู่ = กดซ่อนได้
+      if (restBtn) restBtn.disabled = isActive;    // ถ้าแอคทีฟอยู่ = ยังไม่ต้องกู้คืน
+      const note = $('prodStatusNote');
+      if (note) note.textContent = `สถานะสินค้า: ${isActive ? 'กำลังขาย' : 'ปิดการขาย'}`;
+    }
+
+    async function updateProduct(){
+      const id = $('id_edit').value; if(!id) return alert('ใส่ ID');
+      const fd = new FormData();
+      fd.append('brand_id', $('brand_edit').value);
+      fd.append('product_name', $('name_edit').value);
+      fd.append('model', $('model_edit').value);
+      fd.append('description', $('desc_edit').value);
+      fd.append('frame_shape', $('shape_edit').value);
+      fd.append('glasses_type_ui', $('type_edit').value);
+      fd.append('lens_width_mm', $('lens_edit').value);
+      fd.append('bridge_mm', $('bridge_edit').value);
+      fd.append('temple_mm', $('temple_edit').value);
+      fd.append('front_width_mm', $('front_edit').value);
+      fd.append('status_stock', $('status_edit').value);
+      fd.append('qty', $('qty_edit').value);
+      fd.append('price', $('price_edit').value);
+      fd.append('is_new', $('isnew_edit').value);
+      const f=$('img_edit').files[0]; if(f) fd.append('image', f);
+      const r = await fetch(`/api/admin/products/${id}`, { method:'PUT', credentials:'include', body:fd });
+      setOut(await r.json());
+      loadProducts();
+      loadOneForEdit();
+    }
+
+    // (ยังมีให้ใช้ได้ แต่ไม่แนะนำลบจริง เพราะติด FK) 
+    async function deleteProduct(){
+      const id = $('id_edit').value; if(!id) return alert('ใส่ ID');
+      if(!confirm(`ลบสินค้ารหัส ${id}?`)) return;
+      const r = await fetch(`/api/admin/products/${id}`, { method:'DELETE', credentials:'include' });
+      setOut(await r.json());
+      loadProducts();
+    }
+
+    // >>> ฟังก์ชันใหม่: ซ่อนสินค้า + เคลียร์จากตะกร้าทุกคน
+    async function archiveProduct(){
+      const id = $('id_edit').value;
+      if(!id) return alert('ใส่ ID');
+      if(!confirm(`ซ่อนสินค้ารหัส ${id}? (สินค้าจะถูกปิดการขายและถูกนำออกจากตะกร้าทุกคน)`)) return;
+
+      const r = await fetch(`/api/admin/products/${id}/archive`, {
+        method:'PUT', credentials:'include'
+      });
+      const d = await r.json();
+      if (d.message) alert(d.message);
+      loadProducts();
+      loadOneForEdit();
+    }
+
+    // >>> ฟังก์ชันใหม่: กู้คืนสินค้า
+    async function restoreProduct(){
+      const id = $('id_edit').value;
+      if(!id) return alert('ใส่ ID');
+      if(!confirm(`กู้คืนสินค้ารหัส ${id} ให้กลับมาขายอีกครั้ง?`)) return;
+
+      const r = await fetch(`/api/admin/products/${id}/restore`, {
+        method:'PUT', credentials:'include'
+      });
+      const d = await r.json();
+      if (d.message) alert(d.message);
+      loadProducts();
+      loadOneForEdit();
+    }
+
+    /* Users */
+    async function loadUsers(){
+      const r = await fetch('/api/admin/users', { credentials:'include' });
+      const rows = await r.json();
+      const tb = $('tblUsers').querySelector('tbody');
+      tb.innerHTML = rows.map(u=>`
+        <tr><td>${u.id}</td><td>${u.full_name||'-'}</td><td>${u.email}</td><td>${u.phone||'-'}</td><td>${u.address||'-'}</td></tr>
+      `).join('');
+      setOut(rows);
+    }
+    async function viewUser(){
+      const id = Number($('u_id').value||0); if(!id) return;
+      const r = await fetch(`/api/admin/users/${id}`, { credentials:'include' });
+      const d = await r.json();
+      const card = $('userCard');
+      if(d.message){ card.textContent=d.message; card.classList.remove('hidden'); return; }
+      card.innerHTML = `<div><b>ชื่อ:</b> ${d.full_name||'-'}</div><div><b>อีเมล:</b> ${d.email}</div><div><b>เบอร์โทร:</b> ${d.phone||'-'}</div><div><b>ที่อยู่:</b> ${d.address||'-'}</div>`;
+      card.classList.remove('hidden');
+      setOut(d);
+    }
+    async function loadUserOrders(){
+      const userId = Number($('uo_id').value || 0);
+      if(!userId) return alert('กรุณากรอก User ID');
+      const r = await fetch(`/api/admin/users/${userId}/orders`, { credentials:'include' });
+      const rows = await r.json();
+
+      const tb = $('tblUserOrders').querySelector('tbody');
+      tb.innerHTML = rows.map(o => `
+        <tr>
+          <td>${o.id}</td>
+          <td>${new Date(o.created_at).toLocaleString()}</td>
+          <td><span class="pill">${o.status}</span></td>
+          <td>${o.payment_status || '-'}</td>
+          <td>${o.items_count}</td>
+          <td>${Number(o.total).toLocaleString()}</td>
+          <td>${o.tracking_no || '-'}</td>
+          <td><button class="btn gray" onclick="openOrderFromUser(${o.id})">ดู</button></td>
+        </tr>
+      `).join('');
+      setOut(rows);
+    }
+    function openOrderFromUser(orderId){
+      $('orderId').value = orderId;
+      showSection('sec-orders', document.getElementById('tab-orders'));
+      $('box-order-view').classList.remove('hidden');
+      openOrder();
+    }
+
+    /* Orders */
+    let currentOrderId=null,currentPaymentId=null;
+
+    async function loadOrders(){
+      const r = await fetch('/api/admin/orders', { credentials:'include' });
+      const rows = await r.json();
+      const tb = $('tblOrders').querySelector('tbody');
+      tb.innerHTML = rows.map(o=>`
+        <tr>
+          <td>${o.id}</td><td>${o.full_name||'-'}</td><td>${o.email||'-'}</td>
+          <td><span class="pill">${o.status}</span></td>
+          <td>${Number(o.total).toLocaleString()}</td>
+          <td>${new Date(o.created_at).toLocaleString()}</td>
+          <td><button class="btn gray" onclick="chooseOrder(${o.id})">เลือก</button></td>
+        </tr>
+      `).join('');
+      setOut(rows);
+    }
+    function chooseOrder(id){ $('orderId').value=id; $('box-order-view').classList.remove('hidden'); openOrder(); }
+
+    async function openOrder(){
+      const id = Number($('orderId').value||0); if(!id) return alert('ใส่ Order ID');
+      const r = await fetch(`/api/admin/orders/${id}`, { credentials:'include' });
+      const data = await r.json();
+      if(data.message){ setOut(data.message); return; }
+      const {order,items,payment} = data;
+      currentOrderId=order.id; currentPaymentId=payment?payment.id:null;
+
+      $('orderHeader').innerHTML = `
+        <div><b>Order:</b> ${order.id} | <b>ผู้สั่ง:</b> ${order.full_name} (${order.email}) โทร ${order.phone||'-'}</div>
+        <div><b>ที่อยู่:</b> ${order.recipient_name||'-'} — ${order.ship_address||'-'} ${order.ship_subdistrict||''} ${order.ship_district||''} ${order.ship_province||''} ${order.ship_zipcode||''}</div>
+        <div><b>สถานะ:</b> <span class="pill">${order.status}</span> | <b>เลขพัสดุ:</b> ${order.tracking_no||'-'}</div>
+        <div class="muted">วันที่สั่ง: ${new Date(order.created_at).toLocaleString()}</div>
+      `;
+      const tb=$('tblItems').querySelector('tbody');
+      tb.innerHTML = items.map(it=>`
+        <tr><td>${it.product_id}</td><td><b>${it.name}</b> <span class="muted">รุ่น ${it.model||'-'}</span></td><td>${Number(it.price).toLocaleString()}</td><td>${it.qty}</td><td>${Number(it.subtotal).toLocaleString()}</td></tr>
+      `).join('');
+      $('sum').textContent = Number(order.total).toLocaleString();
+      $('statusSel').value = order.status;
+      $('tracking').value = order.tracking_no || '';
+
+      const payBox=$('payBox');
+      if(payment){
+        payBox.innerHTML = `
+          <div class="muted">สถานะสลิป: <b>${payment.status}</b> | เวลา: ${new Date(payment.uploaded_at).toLocaleString()}</div>
+          ${payment.payment_image?`<div><img class="thumb" style="width:220px;height:auto" src="${payment.payment_image}"></div>`:'<div>- ไม่มีรูป -</div>'}
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn ok" onclick="setPaymentStatus('verified')">อนุมัติ</button>
+            <button class="btn warn" onclick="setPaymentStatus('pending')">รอพิจารณา</button>
+            <button class="btn danger" onclick="setPaymentStatus('rejected')">ปฏิเสธ</button>
+          </div>
+        `;
+      }else{ payBox.textContent='ไม่มีข้อมูลการชำระเงิน'; }
+      $('detail').classList.remove('hidden');
+      setOut(data);
+    }
+
+    async function saveOrderStatus(){
+      if(!currentOrderId) return;
+      const status=$('statusSel').value, tracking=$('tracking').value;
+      const r = await fetch(`/api/admin/orders/${currentOrderId}/status`, {
+        method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({ status, tracking_no:tracking })
+      });
+      setOut(await r.json());
+      loadOrders(); openOrder();
+    }
+    async function setPaymentStatus(status){
+      if(!currentPaymentId) return alert('ยังไม่มีข้อมูลการชำระเงิน');
+      const r = await fetch(`/api/admin/payments/${currentPaymentId}/status`, {
+        method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({ status })
+      });
+      setOut(await r.json());
+      openOrder();
+    }
+
+    /* Reports */
+    function presetMonth(){
+      const d=new Date(); const y=d.getFullYear(); const m=d.getMonth();
+      const first=new Date(y,m,1); const last=new Date(y,m+1,0);
+      $('rep_from').value = first.toISOString().slice(0,10);
+      $('rep_to').value   = last.toISOString().slice(0,10);
+    }
+    async function loadSales(){
+      const from=$('rep_from').value, to=$('rep_to').value;
+      if(!from||!to) return alert('กรุณาเลือกช่วงวันที่');
+      const r = await fetch(`/api/admin/reports/sales?from=${from}&to=${to}`, { credentials:'include' });
+      const data = await r.json();
+      if (data.message){ setOut(data.message); return; }
+      $('sumBox').innerHTML = `
+        <div><b>จำนวนออเดอร์:</b> ${data.summary.orders.toLocaleString()}</div>
+        <div><b>รายได้รวม:</b> ${Number(data.summary.revenue).toLocaleString()} บาท</div>
+        <div><b>ค่าเฉลี่ยต่อออเดอร์:</b> ${Number(data.summary.avg_order).toLocaleString()} บาท</div>
+      `;
+      const tb=$('tblDaily').querySelector('tbody');
+      tb.innerHTML = data.daily.map(d=>`<tr><td>${d.date}</td><td>${d.orders}</td><td>${Number(d.revenue).toLocaleString()}</td></tr>`).join('');
+      setOut(data);
+    }
+    async function loadTopProducts(){
+      const from=$('rep_from').value, to=$('rep_to').value;
+      if(!from||!to) return alert('กรุณาเลือกช่วงวันที่');
+      const r = await fetch(`/api/admin/reports/top-products?from=${from}&to=${to}&limit=20`, { credentials:'include' });
+      const rows = await r.json();
+      const tb=$('tblTop').querySelector('tbody');
+      tb.innerHTML = rows.map(p=>`<tr><td>${p.product_id}</td><td>${p.name||'-'}</td><td>${p.model||'-'}</td><td>${p.qty_sold}</td><td>${Number(p.revenue).toLocaleString()}</td></tr>`).join('');
+      setOut(rows);
+    }
+
+    /* init */
+    loadBrands();
+    showSection('sec-products', document.getElementById('tab-products'));
+    loadProducts();
+    presetMonth();
+  </script>
+</body>
+</html>

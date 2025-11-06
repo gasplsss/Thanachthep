@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>ยืนยันคำสั่งซื้อ • LOOK UP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--line:#e7e9ef;--text:#0f172a;--muted:#64748b;--accent:#2563eb;--danger:#ef4444;--radius:12px;--shadow:0 2px 8px rgba(15,23,42,.06),0 12px 24px rgba(15,23,42,.06);--focus:0 0 0 3px rgba(37,99,235,.25)}
+    @media (prefers-color-scheme: dark){:root{--bg:#0b1020;--card:#0f1528;--line:#20263a;--text:#e5e7eb;--muted:#94a3b8;--shadow:0 2px 12px rgba(0,0,0,.5),0 20px 40px rgba(0,0,0,.35)}}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:var(--bg);color:var(--text)}
+    header{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);backdrop-filter:blur(8px);background:color-mix(in oklab,var(--card) 92%, transparent)}
+    header .sp{flex:1}
+    a.btn,button.btn{appearance:none;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block;background:#fff;color:var(--text);box-shadow:var(--shadow)}
+    .btn.primary{border-color:transparent;background:var(--accent);color:#fff}
+    .btn.danger{border-color:transparent;background:var(--danger);color:#fff}
+    .btn:focus-visible{outline:none;box-shadow:var(--focus),var(--shadow)}
+    main{max-width:980px;margin:16px auto;padding:0 16px 80px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:12px;box-shadow:var(--shadow)}
+    .row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+    label{display:block;margin:8px 0 4px;font-weight:700;color:var(--muted)}
+    input,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    input:focus,textarea:focus{outline:none;box-shadow:var(--focus)}
+    textarea{min-height:84px}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    thead th{font-size:12px;color:var(--muted);font-weight:800;padding:0 10px}
+    tbody tr{background:var(--card);box-shadow:var(--shadow)}
+    tbody td{padding:12px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:middle}
+    tbody tr td:first-child{border-left:1px solid var(--line);border-top-left-radius:12px;border-bottom-left-radius:12px}
+    tbody tr td:last-child{border-right:1px solid var(--line);border-top-right-radius:12px;border-bottom-right-radius:12px}
+    img.thumb{width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+    .muted{color:var(--muted);font-size:12px}
+    .hint{font-size:12px;color:#475569;margin-top:4px}
+    /* toast */
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:grid;gap:10px;z-index:50}
+    .toast{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);padding:12px 14px;border-radius:12px;font-weight:700}
+    /* skeleton */
+    .sk{position:relative;overflow:hidden;background:color-mix(in oklab,#cfd7e7 20%, #fff);border-radius:10px}
+    .sk::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-100%);animation:sh 1.2s infinite}
+    @keyframes sh{to{transform:translateX(100%)}}
+  </style>
+</head>
+<body>
+  <header>
+    <a class="btn" href="/user/cart.html">⬅️ กลับตะกร้า</a>
+    <div class="sp"></div>
+    <b>LOOK UP • ยืนยันคำสั่งซื้อ</b>
+    <div class="sp"></div>
+    <a class="btn" href="/user/user.html">🛍️ เลือกสินค้าเพิ่ม</a>
+  </header>
+
+  <main>
+    <!-- สรุปรายการในตะกร้า -->
+    <div class="card" id="cartCard">
+      <h3>🧾 สรุปรายการสินค้า</h3>
+      <div id="cartSk">
+        <div class="sk" style="height:16px;width:40%"></div>
+        <div class="sk" style="height:80px;width:100%;margin-top:8px"></div>
+      </div>
+      <table id="tblCart" style="display:none">
+        <thead>
+          <tr><th>สินค้า</th><th>ราคา</th><th>จำนวน</th><th>รวม</th></tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr><td colspan="3" style="text-align:right"><b>รวมทั้งสิ้น</b></td><td id="sum">0</td></tr>
+        </tfoot>
+      </table>
+      <div id="cartEmpty" class="muted" style="margin-top:6px;display:none">ตะกร้าว่าง — <a href="/user/user.html">กลับไปเลือกสินค้า</a></div>
+    </div>
+
+    <!-- ที่อยู่จัดส่ง -->
+    <div class="card">
+      <h3>📦 ที่อยู่จัดส่ง</h3>
+
+      <div class="row">
+        <div>
+          <label>👤 ผู้รับ *</label>
+          <input id="recipient_name" placeholder="ชื่อ–นามสกุลผู้รับ" />
+        </div>
+        <div>
+          <label>📞 เบอร์โทร *</label>
+          <input id="ship_phone" inputmode="numeric" maxlength="10" placeholder="0xxxxxxxxx" />
+        </div>
+      </div>
+
+      <label style="margin-top:8px">🏠 บ้านเลขที่ / หมู่ / ซอย / ถนน *</label>
+      <textarea id="ship_address" placeholder="เช่น 212 หมู่ 12 ซอยxx ถนนxx"></textarea>
+      <div class="hint">กรอกเฉพาะรายละเอียดหน้าบ้าน/ซอย/ถนน ช่องด้านล่างจะกรอก ตำบล/อำเภอ/จังหวัด/รหัสไปรษณีย์ แยกต่างหาก</div>
+
+      <div class="row" style="margin-top:8px">
+        <div><label>🧭 ตำบล/แขวง *</label><input id="ship_subdistrict" placeholder="เช่น หนองบัว"/></div>
+        <div><label>🏙️ อำเภอ/เขต *</label><input id="ship_district" placeholder="เช่น เมือง"/></div>
+        <div><label>🗺️ จังหวัด *</label><input id="ship_province" placeholder="เช่น สกลนคร"/></div>
+        <div><label>📮 รหัสไปรษณีย์ *</label><input id="ship_zipcode" inputmode="numeric" maxlength="5" placeholder="xxxxx"/></div>
+      </div>
+
+      <div class="muted" style="margin-top:6px">* ต้องกรอกครบทุกช่องจึงจะยืนยันได้ (ข้อมูลหน้านี้มีผลเฉพาะคำสั่งซื้อปัจจุบัน ไม่ไปแก้โปรไฟล์หลัก)</div>
+
+      <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn primary" id="confirmBtn" onclick="confirmOrder()">✅ ยืนยันและไปชำระเงิน</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="toasts" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+  const $  = id => document.getElementById(id);
+  const toast = (m)=>{ const w=$('toasts'); const t=document.createElement('div'); t.className='toast'; t.textContent=m; w.appendChild(t); setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>t.remove(),260)}, 2000); };
+  function setOut(){} // no-op
+
+  let sending = false;
+
+  // --- Helper: แยกที่อยู่จากสตริงโปรไฟล์ (กรณียังเก็บรวมใน users.address)
+  function parseThaiAddress(raw=''){
+    const out = { line:'', subdistrict:'', district:'', province:'', zip:'' };
+    let s = String(raw||'').replace(/[|,]+/g,' ').replace(/\s+/g,' ').trim();
+    if(!s) return out;
+
+    // zip ท้ายสตริง
+    const zipM = s.match(/(\d{5})\s*$/);
+    if(zipM){ out.zip = zipM[1]; s = s.replace(zipM[0],'').trim(); }
+
+    // ตัดด้วยคีย์เวิร์ด (จังหวัด/อำเภอ/ตำบล)
+    const tokens = s.split(/\s+/);
+    const take = (re, cleanup, key) => {
+      const idx = tokens.findLastIndex(x=> re.test(x));
+      if(idx>=0){
+        out[key] = tokens.splice(idx,1)[0].replace(cleanup,'').trim();
+      }
+    };
+    take(/จังหวัด/, /จังหวัด/g, 'province');
+    take(/^(อำเภอ|อ\.|เขต)/, /^(อำเภอ|อ\.|เขต)/g, 'district');
+    take(/^(ตำบล|ต\.|แขวง)/, /^(ตำบล|ต\.|แขวง)/g, 'subdistrict');
+
+    // เผื่อไม่มี keyword ให้เดาเรียง [.. line ..] [subdistrict] [district] [province]
+    if(!out.province && tokens.length) out.province = tokens.pop();
+    if(!out.district && tokens.length) out.district = tokens.pop();
+    if(!out.subdistrict && tokens.length) out.subdistrict = tokens.pop();
+    out.line = tokens.join(' ').trim();
+
+    return out;
+  }
+
+  // โหลดพรีวิวตะกร้า + เติมค่าจากโปรไฟล์ (แยกช่องให้ครบ)
+  async function init(){
+    await Promise.all([loadPreview(), prefillFromProfile()]);
+    // numeric guard
+    $('ship_phone').addEventListener('input', e=> e.target.value = e.target.value.replace(/\D/g,'').slice(0,10));
+    $('ship_zipcode').addEventListener('input', e=> e.target.value = e.target.value.replace(/\D/g,'').slice(0,5));
+  }
+
+  async function prefillFromProfile(){
+    try{
+      const r = await fetch('/api/user/profile', { credentials:'include' });
+      if (r.status === 401) { location.href='/login.html'; return; }
+      const d = await r.json();
+
+      $('recipient_name').value = d.full_name || '';
+      $('ship_phone').value     = d.phone || '';
+
+      // ถ้าแบ็กเอนด์อนาคตส่งแยกฟิลด์มา ให้ใช้ก่อน
+      const addr = {
+        line: d.addr_line || '',
+        subdistrict: d.addr_subdistrict || '',
+        district: d.addr_district || '',
+        province: d.addr_province || '',
+        zip: d.addr_zip || ''
+      };
+
+      // ถ้าไม่มีฟิลด์ย่อย ใช้ parser จาก d.address
+      if(!addr.line && !addr.subdistrict && !addr.district && !addr.province && !addr.zip){
+        const parsed = parseThaiAddress(d.address || '');
+        Object.assign(addr, parsed);
+      }
+
+      $('ship_address').value     = addr.line || '';
+      $('ship_subdistrict').value = addr.subdistrict || '';
+      $('ship_district').value    = addr.district || '';
+      $('ship_province').value    = addr.province || '';
+      $('ship_zipcode').value     = addr.zip || '';
+    }catch(e){ /* ignore */ }
+  }
+
+  // โหลดรายการในตะกร้า
+  async function loadPreview(){
+    try{
+      let d, ok=false;
+      const rp = await fetch('/api/user/checkout/preview', { method:'POST', credentials:'include' });
+      if (rp.ok) { d = await rp.json(); ok = true; }
+      else {
+        const rc = await fetch('/api/user/cart', { credentials:'include' });
+        d = await rc.json();
+        d = { items: (d.items||[]).map(x=>({
+          image_url: x.image_url, name: x.name, model: x.model, price: x.price, qty: x.qty, subtotal: x.subtotal ?? (Number(x.qty)*Number(x.price))
+        })), total: (d.summary?.total)||0 };
+        ok = (d.items||[]).length>0;
+      }
+
+      const tb = $('tblCart').querySelector('tbody');
+      $('cartSk').style.display='none';
+      if (!ok || !d.items || !d.items.length){
+        $('tblCart').style.display='none';
+        $('sum').textContent = '0';
+        $('cartEmpty').style.display = 'block';
+        return;
+      }
+      $('cartEmpty').style.display = 'none';
+      $('tblCart').style.display='table';
+
+      tb.innerHTML = d.items.map(it => `
+        <tr>
+          <td>
+            <div style="display:flex;gap:10px;align-items:center">
+              <img class="thumb" src="${it.image_url || '/uploads/noimg.png'}" alt="">
+              <div>
+                <div><b>${it.name}</b></div>
+                <div class="muted">รุ่น ${it.model || '-'}</div>
+              </div>
+            </div>
+          </td>
+          <td>${Number(it.price).toLocaleString()}</td>
+          <td>${it.qty}</td>
+          <td>${Number(it.subtotal).toLocaleString()}</td>
+        </tr>
+      `).join('');
+      $('sum').textContent = Number(d.total || 0).toLocaleString();
+    }catch(e){
+      $('cartSk').style.display='none';
+      $('cartEmpty').style.display='block';
+    }
+  }
+
+  function validate(){
+    const need = [
+      ['recipient_name','กรุณากรอกชื่อผู้รับ'],
+      ['ship_phone','กรุณากรอกเบอร์โทรให้ถูกต้อง'],
+      ['ship_address','กรอกบ้านเลขที่/ซอย/ถนน'],
+      ['ship_subdistrict','กรอกตำบล/แขวง'],
+      ['ship_district','กรอกอำเภอ/เขต'],
+      ['ship_province','กรอกจังหวัด'],
+      ['ship_zipcode','กรอกรหัสไปรษณีย์ 5 หลัก'],
+    ];
+
+    for (const [id,msg] of need){
+      const v = $(id).value.trim();
+      if(!v){ toast(msg); return false; }
+    }
+    if(!/^0\d{8,9}$/.test($('ship_phone').value.trim())){ toast('กรุณากรอกเบอร์โทรให้ถูกต้อง'); return false; }
+    if(!/^\d{5}$/.test($('ship_zipcode').value.trim())){ toast('รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก'); return false; }
+    return true;
+  }
+
+  async function confirmOrder(){
+    if (sending) return; if(!validate()) return;
+    sending = true; const btn = $('confirmBtn'); btn.disabled = true; btn.textContent='กำลังสร้างคำสั่งซื้อ…';
+
+    // ❗ ส่วนนี้จะส่งเฉพาะค่าที่อยู่สำหรับออเดอร์นี้เท่านั้น ไม่ไปแก้ users.profile
+    const body = {
+      recipient_name:   $('recipient_name').value.trim(),
+      ship_phone:       $('ship_phone').value.trim(),
+      ship_address:     $('ship_address').value.trim(),
+      ship_subdistrict: $('ship_subdistrict').value.trim(),
+      ship_district:    $('ship_district').value.trim(),
+      ship_province:    $('ship_province').value.trim(),
+      ship_zipcode:     $('ship_zipcode').value.trim(),
+    };
+
+    try{
+      // เช็คตะกร้าไม่ว่าง
+      const rc = await fetch('/api/user/cart', { credentials:'include' });
+      const dc = await rc.json();
+      if(!dc.items || !dc.items.length){ toast('ตะกร้าสินค้าว่าง'); location.href='/user/user.html'; return; }
+
+      const r = await fetch('/api/user/checkout/confirm', {
+        method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+        body: JSON.stringify(body)
+      });
+      const data = await r.json().catch(()=>({}));
+
+      if (!r.ok){
+        if (data.code === 'CART_EMPTY'){ toast('ตะกร้าว่าง'); location.href='/user/user.html'; return; }
+        toast(data.message || 'ยืนยันคำสั่งซื้อไม่สำเร็จ');
+        return;
+      }
+      if (data.order_id){ try{ localStorage.setItem('last_order_id', String(data.order_id)); }catch{} }
+      location.href = `/user/pay.html?id=${data.order_id}`;
+    }catch(e){
+      toast('เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ');
+    }finally{
+      sending = false; btn.disabled = false; btn.textContent='✅ ยืนยันและไปชำระเงิน';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
